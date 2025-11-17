@@ -1,44 +1,111 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import db, User,Rotina
+from datetime import datetime
+import os
 
 app = Flask(__name__)
+app.secret_key = 'chave-secreta'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///banco.db'
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(BASE_DIR, 'lifebuild.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy (app)
+db.init_app(app)
 
-class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    nome = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(130), unique=True, nullable=False)
-    senha = db.Column(db.String(100), nullable=False)
+with app.app_context():
+    db.create_all()
 
-    def __repr__(self):
-        return f'<Usuario {self.nome}>'
-    
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        senha = request.form['senha']
+
+        usuario = User.query.filter_by(email=email).first()
+
+        if usuario and check_password_hash(usuario.senha_hash, senha):
+            session['usuario_id'] = usuario.id
+            flash('Login realizado com sucesso!', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash('E-mail ou senha incorretos.', 'danger')
+
+    return render_template('login.html')
 
 @app.route('/cadastro', methods=['GET', 'POST'])
-def cadastrar():
+def cadastro():
     if request.method == 'POST':
         nome = request.form['nome']
         email = request.form['email']
         senha = request.form['senha']
 
-        novo_usuario = Usuario(nome=nome, email=email, senha=senha)
+        if User.query.filter_by(email=email).first():
+            flash('E-mail já cadastrado!', 'warning')
+            return redirect(url_for('cadastro'))
+
+        senha_hash = generate_password_hash(senha)
+        novo_usuario = User(nome=nome, email=email, senha_hash=senha_hash)
         db.session.add(novo_usuario)
         db.session.commit()
-        return redirect(url_for('index'))  
 
-@app.route('/usuarios')
-def usuarios():
-    lista = Usuario.query.all()
-    return render_template('usuarios.html', usuarios=lista)
+        flash('Cadastro realizado! Faça login.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('cadastro.html')
+
+@app.route('/home')
+def home():
+    if 'usuario_id' not in session:
+        return redirect(url_for('login'))
+
+    usuario = User.query.get(session['usuario_id'])
+    return render_template('inicio.html', usuario=usuario)
+
+@app.route('/nova_rotina', methods=['GET', 'POST'])
+def nova_rotina():
+    if 'usuario_id' not in session:
+        flash("Você precisa estar logado para criar uma rotina.")
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        titulo = request.form['titulo']
+        descricao = request.form.get('descricao', '')
+        tipo_periodo = request.form.get('tipo_periodo', 'inicio_fim')
+        data_inicio = datetime.strptime(request.form['data_inicio'], '%Y-%m-%d').date()
+        data_fim = datetime.strptime(request.form['data_fim'], '%Y-%m-%d').date()
+        dias_semana = ','.join(request.form.getlist('dias_semana'))
+        hora_str = request.form.get('hora', None)
+        hora = datetime.strptime(hora_str, '%H:%M').time() if hora_str else None
+        prioridade = request.form.get('prioridade', 'média')
+        etiqueta = request.form.get('etiqueta', '')
+
+        nova = Rotina(
+            titulo=titulo,
+            descricao=descricao,
+            tipo_periodo=tipo_periodo,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            dias_semana=dias_semana,
+            hora=hora,
+            prioridade=prioridade,
+            etiqueta=etiqueta,
+            usuario_id=session['usuario_id']
+        )
+
+        db.session.add(nova)
+        db.session.commit()
+        flash('Rotina criada com sucesso!')
+        return redirect(url_for('hoje'))
+
+    return render_template('inicio.html')
+
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  
     app.run(debug=True)
