@@ -315,6 +315,12 @@ const I18N = {
     'es-ES': 'Editar',
     'fr-FR': 'Modifier'
   },
+  'profile.changePhoto': {
+    'pt-BR': 'Alterar Foto',
+    'en-US': 'Change Photo',
+    'es-ES': 'Cambiar Foto',
+    'fr-FR': 'Changer la photo'
+  },
 
   // Painel de detalhes
   'details.titulo': {
@@ -862,7 +868,11 @@ const DOM = {
   recurringEndRadios: document.querySelectorAll('input[name="recurringEnd"]'),
   recurringOccurrences: document.getElementById('recurringOccurrences'),
   recurringEndDate: document.getElementById('recurringEndDate'),
-  recurringStartDate: document.getElementById('recurringStartDate')
+  recurringStartDate: document.getElementById('recurringStartDate'),
+  // Foto do perfil
+  profilePhoto: document.getElementById('profilePhoto'),
+  profilePhotoInput: document.getElementById('profilePhotoInput'),
+  changePhotoBtn: document.getElementById('changePhotoBtn')
 };
 
 // Templates <template> do HTML (clonamos estes quando precisamos criar elementos)
@@ -1022,6 +1032,7 @@ function init() {
 
   // Configurar troca de foto do perfil
   setupProfilePhotoChange();
+  setupPhotoChangeButton(); // ← NOVA FUNÇÃO PARA O BOTÃO
 
   // Carregar foto do perfil salva
   loadProfilePhoto();
@@ -1365,7 +1376,7 @@ function duplicateCurrentTask() {
 }
 
 /*
-   9) GESTÃO DE ETIQUETAS (TAGS)
+   9) GESTÃO DE ETIQUETAS (TAGS) - VERSÃO CORRIGIDA
 */
 
 // Função para abrir o modal de nova etiqueta
@@ -1474,7 +1485,7 @@ function addNewTag({ name, color }) {
   return newTag;
 }
 
-// Renderiza as tags na sidebar e no datalist do formulário
+// Renderiza as tags na sidebar e no datalist do formulário - VERSÃO CORRIGIDA
 function renderTags() {
   if (!DOM.tagList) return;
 
@@ -1514,6 +1525,12 @@ function renderTags() {
     a.dataset.tag = tag.name;
     a.textContent = `#${tag.name}`;
 
+    // Verificar se esta etiqueta está ativa
+    const activeTagLink = document.querySelector('.tag.is-active');
+    if (activeTagLink && activeTagLink.dataset.tag === tag.name) {
+      a.classList.add('is-active');
+    }
+
     // Aplicar cor da etiqueta
     a.style.borderColor = tag.color;
     a.style.color = tag.color;
@@ -1530,20 +1547,25 @@ function renderTags() {
   });
 }
 
-// Função para filtrar por etiqueta
+// Função para filtrar por etiqueta - VERSÃO CORRIGIDA
 function filterByTag(tagName) {
   // Limpar filtros ativos
   if (DOM.filterLinks && DOM.filterLinks.length) {
     DOM.filterLinks.forEach(l => l.classList.remove('is-active'));
   }
 
-  // Filtrar tarefas pela etiqueta
-  const filteredTasks = state.routines.filter(routine =>
-    routine.tag && routine.tag.toLowerCase() === tagName.toLowerCase()
-  );
+  // Limpar outras etiquetas ativas
+  const allTags = document.querySelectorAll('.tag');
+  allTags.forEach(tag => tag.classList.remove('is-active'));
 
-  // Renderizar lista filtrada
-  renderTaskListWithTasks(filteredTasks);
+  // Marcar etiqueta atual como ativa
+  const currentTag = document.querySelector(`.tag[data-tag="${tagName}"]`);
+  if (currentTag) {
+    currentTag.classList.add('is-active');
+  }
+
+  // Renderizar a view atual com o filtro aplicado
+  render();
 
   const lang = getLang();
   const filterMessages = {
@@ -1562,7 +1584,7 @@ function getTagByName(tagName) {
 }
 
 /* 
-   10) FILTRAGEM E LISTAGEM DE TAREFAS
+   10) FILTRAGEM E LISTAGEM DE TAREFAS - VERSÃO CORRIGIDA
 */
 
 // Retorna um array de tarefas filtradas de acordo com a view atual e filtros rápidos
@@ -1599,36 +1621,44 @@ function getFilteredTasks() {
   const activeFilterLink = document.querySelector('.menu-link[data-filter].is-active');
   if (activeFilterLink) {
     const filter = activeFilterLink.dataset.filter;
-    switch (filter) {
-      case 'pendentes':
-        tasks = tasks.filter(t => !t.completed);
-        break;
-      case 'concluidas':
-        tasks = tasks.filter(t => t.completed);
-        break;
-      case 'alta':
-        tasks = tasks.filter(t => t.priority === 'high');
-        break;
-      case 'media':
-        tasks = tasks.filter(t => t.priority === 'medium');
-        break;
-      case 'baixa':
-        tasks = tasks.filter(t => t.priority === 'low');
-        break;
-      case 'semData':
-        tasks = tasks.filter(t => !t.date);
-        break;
-      default:
-        break;
-    }
-  } else {
-    // Se não houver filtro ativo, aplica preferência global de mostrar ou não concluídas
+    tasks = applyFilter(tasks, filter);
+  }
+
+  // Filtro por etiqueta ativo
+  const activeTagLink = document.querySelector('.tag.is-active');
+  if (activeTagLink) {
+    const tagName = activeTagLink.dataset.tag;
+    tasks = tasks.filter(task => task.tag && task.tag.toLowerCase() === tagName.toLowerCase());
+  }
+
+  // Se não houver filtro ativo, aplica preferência global de mostrar ou não concluídas
+  if (!activeFilterLink && !activeTagLink) {
     if (!state.preferences.showCompleted) {
       tasks = tasks.filter(t => !t.completed);
     }
   }
 
   return tasks;
+}
+
+// Aplica filtro específico ao array de tarefas
+function applyFilter(tasks, filter) {
+  switch (filter) {
+    case 'pendentes':
+      return tasks.filter(t => !t.completed);
+    case 'concluidas':
+      return tasks.filter(t => t.completed);
+    case 'alta':
+      return tasks.filter(t => t.priority === 'high');
+    case 'media':
+      return tasks.filter(t => t.priority === 'medium');
+    case 'baixa':
+      return tasks.filter(t => t.priority === 'low');
+    case 'semData':
+      return tasks.filter(t => !t.date);
+    default:
+      return tasks;
+  }
 }
 
 /*
@@ -1700,6 +1730,7 @@ function renderTaskListWithTasks(tasks) {
 function render() {
   updateViewTitle();
   renderTags(); // garante que as tags estejam atualizadas
+  updateFilterIndicators(); // ← ADICIONAR ESTA LINHA
 
   // Oculta todas as views primeiro
   const views = document.querySelectorAll('.view');
@@ -1765,7 +1796,7 @@ function renderBoard() {
 }
 
 /*
-  11.2) Render - Calendário
+  11.2) Render - Calendário - VERSÃO CORRIGIDA
 */
 
 // Renderiza o calendário do mês atual (state.currentDate)
@@ -1804,12 +1835,14 @@ function renderCalendar() {
     DOM.calendarGrid.appendChild(dayEl);
   }
 
-  // Dias do mês atual
+  // Dias do mês atual - USANDO TAREFAS FILTRADAS
+  const tasks = getFilteredTasks(); // ← CORREÇÃO IMPORTANTE: usar tarefas filtradas
   const today = new Date();
+  
   for (let d = 1; d <= daysInMonth; d++) {
     const isToday = (today.getDate() === d && today.getMonth() === month && today.getFullYear() === year);
     const fullDate = new Date(year, month, d);
-    const dayEl = createCalendarDay(d, false, isToday, fullDate);
+    const dayEl = createCalendarDay(d, false, isToday, fullDate, tasks); // ← Passar tasks filtradas
     DOM.calendarGrid.appendChild(dayEl);
   }
 
@@ -1823,13 +1856,14 @@ function renderCalendar() {
   }
 }
 
-/* Cria um elemento de dia para o calendário
+/* Cria um elemento de dia para o calendário - VERSÃO CORRIGIDA
    day: número do dia
    isOtherMonth: boolean, se o dia pertence a outro mês (visualmente diferenciado)
    isToday: boolean
    fullDate: Date (opcional) - se fornecido, busca eventos para esse dia
+   tasks: array de tarefas já filtradas
 */
-function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null) {
+function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null, tasks = []) {
   const cell = document.createElement('div');
   cell.className = 'calendar-day';
   if (isOtherMonth) cell.classList.add('other-month');
@@ -1842,9 +1876,9 @@ function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null) 
   cell.appendChild(number);
 
   // Se fullDate é passado, queremos também colocar eventos desse dia
-  if (fullDate) {
-    // Busca tarefas cuja data corresponde ao fullDate
-    const tasksForDay = state.routines.filter(task => {
+  if (fullDate && tasks) {
+    // Busca tarefas cuja data corresponde ao fullDate DENTRO DAS TAREFAS JÁ FILTRADAS
+    const tasksForDay = tasks.filter(task => {
       if (!task.date) return false;
       // Normaliza para midnight local
       const taskDate = new Date(task.date + 'T00:00:00');
@@ -2758,7 +2792,7 @@ function processCustomPeriodForm(e) {
 }
 
 /*
-  16) SISTEMA DE NOTIFICAÇÕES
+   16) SISTEMA DE NOTIFICAÇÕES
 */
 
 // Configurar notificações
@@ -2887,7 +2921,104 @@ function sendReminderNotification(task) {
 }
 
 /*
-   17) EVENTOS GERAIS E LIGAÇÕES
+   17) SISTEMA DE TROCA DE FOTO DO PERFIL
+*/
+
+// Configurar evento para trocar foto do perfil (clique na foto)
+function setupProfilePhotoChange() {
+  if (DOM.profilePhoto && DOM.profilePhotoInput) {
+    // Clicar na foto abre o seletor de arquivos
+    DOM.profilePhoto.addEventListener('click', () => {
+      DOM.profilePhotoInput.click();
+    });
+    
+    // Quando um arquivo é selecionado
+    DOM.profilePhotoInput.addEventListener('change', handleProfilePhotoChange);
+  }
+}
+
+// Configurar evento para o botão de alterar foto
+function setupPhotoChangeButton() {
+  if (DOM.changePhotoBtn && DOM.profilePhotoInput) {
+    DOM.changePhotoBtn.addEventListener('click', () => {
+      DOM.profilePhotoInput.click();
+    });
+  }
+}
+
+// Processar a troca da foto do perfil
+function handleProfilePhotoChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Validar tipo de arquivo
+  if (!file.type.startsWith('image/')) {
+    showToast('Por favor, selecione uma imagem válida.', 'error');
+    return;
+  }
+  
+  // Validar tamanho do arquivo (máximo 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('A imagem deve ter no máximo 5MB.', 'error');
+    return;
+  }
+  
+  // Ler a imagem e atualizar o perfil
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    updateProfilePhoto(e.target.result);
+  };
+  
+  reader.onerror = function() {
+    showToast('Erro ao carregar a imagem.', 'error');
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// Atualizar a foto do perfil no estado e na interface
+function updateProfilePhoto(imageData) {
+  // Atualizar no estado
+  if (!state.profile) state.profile = {};
+  state.profile.photo = imageData;
+  
+  // Atualizar na interface
+  const profilePhoto = document.getElementById('profilePhoto');
+  const topbarAvatar = document.querySelector('.topbar .avatar img');
+  
+  if (profilePhoto) {
+    profilePhoto.src = imageData;
+  }
+  
+  if (topbarAvatar) {
+    topbarAvatar.src = imageData;
+  }
+  
+  // Salvar no localStorage
+  saveData();
+  
+  showToastTranslation('toast.saved', 'success');
+}
+
+// Carregar foto do perfil salva
+function loadProfilePhoto() {
+  if (state.profile && state.profile.photo) {
+    const profilePhoto = document.getElementById('profilePhoto');
+    const topbarAvatar = document.querySelector('.topbar .avatar img');
+    
+    if (profilePhoto) {
+      profilePhoto.src = state.profile.photo;
+    }
+    
+    if (topbarAvatar) {
+      topbarAvatar.src = state.profile.photo;
+    }
+  }
+}
+
+/*
+   18) EVENTOS GERAIS E LIGAÇÕES - VERSÃO CORRIGIDA
 */
 
 // Configura todos os listeners de UI (botões, formulários, links, etc.)
@@ -2911,17 +3042,47 @@ function setupEventListeners() {
     });
   }
 
-  // Filtros rápidos (data-filter)
+  // Filtros rápidos (data-filter) - VERSÃO CORRIGIDA
   if (DOM.filterLinks && DOM.filterLinks.length) {
     DOM.filterLinks.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const wasActive = link.classList.contains('is-active');
-        // limpa todos
+        
+        // Limpar todos os filtros e etiquetas
         DOM.filterLinks.forEach(l => l.classList.remove('is-active'));
-        // alterna
-        if (!wasActive) link.classList.add('is-active');
+        const allTags = document.querySelectorAll('.tag');
+        allTags.forEach(tag => tag.classList.remove('is-active'));
+        
+        // Alternar filtro
+        if (!wasActive) {
+          link.classList.add('is-active');
+        }
+        
         render();
+        
+        // Mostrar mensagem apenas se um filtro foi ativado
+        if (!wasActive) {
+          const filter = link.dataset.filter;
+          const lang = getLang();
+          const filterNames = {
+            'pendentes': t('filter.pendentes'),
+            'concluidas': t('filter.concluidas'),
+            'alta': t('filter.alta'),
+            'media': t('filter.media'),
+            'baixa': t('filter.baixa'),
+            'semData': t('filter.semData')
+          };
+          
+          const filterMessages = {
+            'pt-BR': `Filtrado por: ${filterNames[filter]}`,
+            'en-US': `Filtered by: ${filterNames[filter]}`,
+            'es-ES': `Filtrado por: ${filterNames[filter]}`,
+            'fr-FR': `Filtré par: ${filterNames[filter]}`
+          };
+          
+          showToast(filterMessages[lang] || filterMessages['pt-BR'], 'info');
+        }
       });
     });
   }
@@ -3084,7 +3245,7 @@ function setupEventListeners() {
 }
 
 /*
-   18) FUNÇÕES AUXILIARES (UI/Helpers)
+   19) FUNÇÕES AUXILIARES (UI/Helpers)
 */
 
 // Alterna a sidebar visível / escondida e persiste a preferência
@@ -3115,6 +3276,10 @@ function setCurrentView(view) {
     DOM.filterLinks.forEach(l => l.classList.remove('is-active'));
   }
 
+  // Limpa etiquetas ativas ao trocar de view
+  const allTags = document.querySelectorAll('.tag');
+  allTags.forEach(tag => tag.classList.remove('is-active'));
+
   render();
 }
 
@@ -3126,8 +3291,22 @@ function updateClock() {
   if (DOM.nowTime) DOM.nowTime.textContent = now.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
 }
 
+// Atualiza indicadores visuais de filtros ativos
+function updateFilterIndicators() {
+  // Verificar se há filtros ativos
+  const activeFilter = document.querySelector('.menu-link[data-filter].is-active');
+  const activeTag = document.querySelector('.tag.is-active');
+  
+  // Adicionar/remover classe no app para indicar filtro ativo
+  if (activeFilter || activeTag) {
+    DOM.app.classList.add('has-active-filter');
+  } else {
+    DOM.app.classList.remove('has-active-filter');
+  }
+}
+
 /*
-   19) SISTEMA DE GRÁFICOS
+   20) SISTEMA DE GRÁFICOS
 */
 
 // Inicializar todos os gráficos
@@ -3308,97 +3487,6 @@ function renderEmptyCharts() {
       }
     }
   });
-}
-
-/*
-   20) SISTEMA DE TROCA DE FOTO DO PERFIL
-*/
-
-// Configurar evento para trocar foto do perfil
-function setupProfilePhotoChange() {
-  const profilePhoto = document.querySelector('.profile-photo');
-  const profilePhotoInput = document.getElementById('profilePhotoInput');
-  
-  if (profilePhoto && profilePhotoInput) {
-    // Clicar na foto abre o seletor de arquivos
-    profilePhoto.addEventListener('click', () => {
-      profilePhotoInput.click();
-    });
-    
-    // Quando um arquivo é selecionado
-    profilePhotoInput.addEventListener('change', handleProfilePhotoChange);
-  }
-}
-
-// Processar a troca da foto do perfil
-function handleProfilePhotoChange(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  // Validar tipo de arquivo
-  if (!file.type.startsWith('image/')) {
-    showToast('Por favor, selecione uma imagem válida.', 'error');
-    return;
-  }
-  
-  // Validar tamanho do arquivo (máximo 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    showToast('A imagem deve ter no máximo 5MB.', 'error');
-    return;
-  }
-  
-  // Ler a imagem e atualizar o perfil
-  const reader = new FileReader();
-  
-  reader.onload = function(e) {
-    updateProfilePhoto(e.target.result);
-  };
-  
-  reader.onerror = function() {
-    showToast('Erro ao carregar a imagem.', 'error');
-  };
-  
-  reader.readAsDataURL(file);
-}
-
-// Atualizar a foto do perfil no estado e na interface
-function updateProfilePhoto(imageData) {
-  // Atualizar no estado
-  if (!state.profile) state.profile = {};
-  state.profile.photo = imageData;
-  
-  // Atualizar na interface
-  const profilePhoto = document.querySelector('.profile-photo');
-  const topbarAvatar = document.querySelector('.topbar .avatar img');
-  
-  if (profilePhoto) {
-    profilePhoto.src = imageData;
-  }
-  
-  if (topbarAvatar) {
-    topbarAvatar.src = imageData;
-  }
-  
-  // Salvar no localStorage
-  saveData();
-  
-  showToastTranslation('toast.saved', 'success');
-}
-
-// Carregar foto do perfil salva
-function loadProfilePhoto() {
-  if (state.profile && state.profile.photo) {
-    const profilePhoto = document.querySelector('.profile-photo');
-    const topbarAvatar = document.querySelector('.topbar .avatar img');
-    
-    if (profilePhoto) {
-      profilePhoto.src = state.profile.photo;
-    }
-    
-    if (topbarAvatar) {
-      topbarAvatar.src = state.profile.photo;
-    }
-  }
 }
 
 /*
