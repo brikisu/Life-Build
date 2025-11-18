@@ -1,4 +1,3 @@
-
 /*
    LIGHT MODE (Default)
 */
@@ -84,6 +83,41 @@
     /* Emerald 500 */
     --color-danger: #ef4444;
 }
+
+/* Estilos para indicadores de filtro ativo */
+.app.has-active-filter .content-header::before {
+  content: "Filtro Ativo";
+  display: inline-block;
+  background-color: var(--color-primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+/* Estilo para etiquetas ativas */
+.tag.is-active {
+  font-weight: 600;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* Botão limpar filtros (opcional) */
+.btn.clear-filters {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  margin-left: 12px;
+}
+
+.btn.clear-filters:hover {
+  background-color: var(--color-border);
+  color: var(--color-text-default);
+}
+
+
+
 
 /* CORREÇÃO: Regra específica para dark mode movida para fora do seletor principal */
 .app[data-theme="dark"] .calendar-day.today {
@@ -292,6 +326,26 @@ a {
    COMPONENTES GERAIS: Botões, Menu, Fields
 */
 
+
+
+
+/* Estilo do botão */
+  #uploadButton {
+    background-color: #4CAF50; /* Verde bonito */
+    color: white;               /* Texto branco */
+    border: none;               /* Sem borda */
+    padding: 10px 20px;         /* Espaçamento interno */
+    font-size: 16px;            /* Tamanho da fonte */
+    border-radius: 8px;         /* Cantos arredondados */
+    cursor: pointer;            /* Mãozinha ao passar o mouse */
+    transition: background-color 0.3s ease; /* Efeito suave */
+  }
+
+  #uploadButton:hover {
+    background-color: #45a049; /* Muda a cor ao passar o mouse */
+  }
+
+  
 /* Botões */
 .btn,
 .btn-primary {
@@ -1552,6 +1606,38 @@ label {
     font-weight: 700;
     margin-bottom: 15px;
     color: var(--color-primary);
+}
+
+/* Estilos para o botão de alterar foto */
+.profile-photo-container {
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+
+.change-photo-btn {
+    margin-top: 10px;
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.change-photo-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Estilo responsivo para o botão */
+@media (max-width: 768px) {
+    .change-photo-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
 }
 
 /*
