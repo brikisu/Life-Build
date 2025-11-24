@@ -1,4 +1,3 @@
-
 /*
    LIGHT MODE (Default)
 */
@@ -45,29 +44,6 @@
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    
-    --lux-black: #050505;
-    --lux-black-2: #0c0c0c;
-    --lux-black-3: #111;
-    --lux-gold: #d4af37;
-    --lux-gold-soft: #b8962f;
-    --lux-gray: #1a1a1a;
-    --lux-white: #ffffff;
-    --lux-text: #e8e8e8;
-    --lux-soft: rgba(255, 255, 255, 0.04);
-    --lux-blur: blur(14px);
-    --transition: 0.25s ease;
-
-
-    --radius-xl: 22px;
-    --radius-lg: 18px;
-
-
-    --shadow-premium: 0 0 28px rgba(212, 175, 55, 0.18);
-    --shadow-soft: 0 5px 30px rgba(0, 0, 0, 0.45);
-
-
-    font-family: "Inter", sans-serif;
 }
 
 /*
@@ -108,6 +84,41 @@
     --color-danger: #ef4444;
 }
 
+/* Estilos para indicadores de filtro ativo */
+.app.has-active-filter .content-header::before {
+  content: "Filtro Ativo";
+  display: inline-block;
+  background-color: var(--color-primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+/* Estilo para etiquetas ativas */
+.tag.is-active {
+  font-weight: 600;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* Botão limpar filtros (opcional) */
+.btn.clear-filters {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  margin-left: 12px;
+}
+
+.btn.clear-filters:hover {
+  background-color: var(--color-border);
+  color: var(--color-text-default);
+}
+
+
+
+
 /* CORREÇÃO: Regra específica para dark mode movida para fora do seletor principal */
 .app[data-theme="dark"] .calendar-day.today {
     background-color: #111827;
@@ -122,23 +133,19 @@
 }
 
 body {
-    color: var(--lux-text);
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+    background-color: transparent;
+    color: var(--color-text-default);
+    line-height: 1.5;
+    transition: background-color 0.3s, color 0.3s;
 }
-body.dark-mode {
-    background: #000;
-    color: var(--lux-white);
-}
+
 .app {
     background-color: var(--color-bg);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     transition: margin-left 0.3s ease-in-out;
-    color: var(--lux-text)
 }
 
 a {
@@ -157,11 +164,11 @@ a {
     height: var(--header-height);
     padding: 0 16px;
     background-color: var(--color-bg-alt);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--color-border);
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow-sm);
 }
 
 
@@ -178,7 +185,7 @@ a {
     align-items: center;
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--lux-gold);
+    color: #ff5454;
     margin-left: 8px;
 }
 
@@ -267,42 +274,16 @@ a {
 
 /* Sidebar */
 .sidebar {
-    width: 270px;
+    width: var(--sidebar-width);
     min-width: var(--sidebar-width);
+    background-color: var(--color-sidebar-bg);
+    border-right: 1px solid var(--color-border);
+    padding: 16px;
     overflow-y: auto;
-    transition: var(--transition);    
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
     flex-shrink: 0;
-    box-shadow: var(--shadow-soft);
-    border-right: 1px solid rgba(255, 255, 255, 0.04);
-}
-.sidebar .logo {
-font-size: 30px;
-font-weight: 800;
-letter-spacing: 3.5px;
-text-transform: uppercase;
-color: var(--lux-gold);
-margin-bottom: 40px;
-text-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
 }
 
-
-.sidebar a {
-display: block;
-padding: 14px 20px;
-margin: 10px 0;
-border-radius: var(--radius-lg);
-text-decoration: none;
-color: var(--lux-text);
-font-weight: 500;
-transition: var(--transition);
-}
-
-.sidebar a:hover {
-border-left: 3px solid var(--lux-gold);
-padding-left: 26px;
-color: var(--lux-gold);
-box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.2);
-}
 /* Conteúdo Principal */
 .content {
     flex-grow: 1;
@@ -345,27 +326,44 @@ box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.2);
    COMPONENTES GERAIS: Botões, Menu, Fields
 */
 
+
+
+
+/* Estilo do botão */
+  #uploadButton {
+    background-color: #4CAF50; /* Verde bonito */
+    color: white;               /* Texto branco */
+    border: none;               /* Sem borda */
+    padding: 10px 20px;         /* Espaçamento interno */
+    font-size: 16px;            /* Tamanho da fonte */
+    border-radius: 8px;         /* Cantos arredondados */
+    cursor: pointer;            /* Mãozinha ao passar o mouse */
+    transition: background-color 0.3s ease; /* Efeito suave */
+  }
+
+  #uploadButton:hover {
+    background-color: #45a049; /* Muda a cor ao passar o mouse */
+  }
+
+  
 /* Botões */
 .btn,
 .btn-primary {
-    padding: 13px 26px;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--lux-gold);
-    color: var(--lux-gold);
-    background: transparent;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: var(--transition);
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    transition: background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 0.875rem;
 }
 
 .btn:hover,
 .btn-primary:hover {
-    background: var(--lux-gold);
-    color: #000;
-    box-shadow: var(--shadow-premium);
-    transform: translateY(-2px);
+    background-color: var(--color-primary-dark);
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .btn.ghost {
@@ -1096,32 +1094,19 @@ input:checked+.slider:before {
 .board,
 .kanban {
     display: flex;
-    gap: 22px;
-    padding: 25px;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
 }
 
 .column,
 .kanban-col {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--radius-xl);
-    padding: 20px;
-    backdrop-filter: var(--lux-blur);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-}
-.kanban-task {
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: var(--radius-lg);
-    margin-bottom: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: var(--transition);
-}
-
-.kanban-task:hover {
-background: rgba(0, 0, 0, 0.7);
-transform: scale(1.03);
-border-color: var(--lux-gold);
+    min-width: 300px;
+    width: 33.33%;
+    background-color: var(--color-bg-alt);
+    border-radius: 8px;
+    padding: 12px;
+    transition: background-color 0.2s;
 }
 
 .column.drag-over {
@@ -1151,17 +1136,19 @@ border-color: var(--lux-gold);
 }
 
 .card {
-    padding: 28px;
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-soft);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    backdrop-filter: var(--lux-blur);
-    transition: var(--transition);
+    background-color: var(--color-bg);
+    border-radius: 6px;
+    box-shadow: var(--shadow-sm);
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid transparent;
+    transition: border-left-color 0.2s, box-shadow 0.2s;
+    cursor: grab;
+    border: 1px solid var(--color-border);
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+    box-shadow: var(--shadow-md);
 }
 
 .card-head {
@@ -1455,25 +1442,13 @@ border-color: var(--lux-gold);
    MODAIS (DIALOG)
 */
 .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    backdrop-filter: blur(18px);
-    background: rgba(0, 0, 0, 0.75);
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-background: #0e0e0e;
-padding: 38px;
-border-radius: var(--radius-xl);
-width: 460px;
-border: 1px solid var(--lux-gold-soft);
-box-shadow: var(--shadow-premium);
+    border: none;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    background-color: var(--color-bg-alt);
+    max-width: 500px;
+    width: 90%;
 }
 
 .modal::backdrop {
@@ -1485,6 +1460,9 @@ box-shadow: var(--shadow-premium);
     max-width: 400px;
 }
 
+.modal-content {
+    padding: 0;
+}
 
 .modal-header {
     display: flex;
@@ -1511,13 +1489,6 @@ box-shadow: var(--shadow-premium);
     padding: 16px;
     border-top: 1px solid var(--color-border);
 }
-
-.modal h2 {
-color: var(--lux-gold);
-margin-bottom: 15px;
-font-size: 24px;
-letter-spacing: 1px;
-}ddd
 
 /*
    TOASTS E RODAPÉ
@@ -1636,20 +1607,39 @@ label {
     margin-bottom: 15px;
     color: var(--color-primary);
 }
-.fade-in {
-    animation: fadeIn 0.7s ease forwards;
+
+/* Estilos para o botão de alterar foto */
+.profile-photo-container {
+    position: relative;
+    display: inline-block;
+    text-align: center;
 }
 
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(18px); }
-    to { opacity: 1; transform: translateY(0); }
+.change-photo-btn {
+    margin-top: 10px;
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-
-.glow-gold:hover {
-    box-shadow: 0 0 22px var(--lux-gold);
+.change-photo-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
 }
+
+/* Estilo responsivo para o botão */
+@media (max-width: 768px) {
+    .change-photo-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
+
 /*
    RESPONSIVIDADE (Celulares e Tablets)
 */
@@ -1781,21 +1771,4 @@ label {
         font-size: 0.7rem;
         padding: 1px 2px;
     }
-   .widget {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: var(--lux-blur);
-    border-radius: var(--radius-xl);
-    padding: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    transition: var(--transition);
-}
-
-
-    .widget-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--lux-gold);
-    margin-bottom: 12px;
-    text-transform: uppercase;
-}
 }
