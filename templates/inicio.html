@@ -5,39 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title data-i18n="view.hoje">Rotinas</title>
   <meta name="description" content="App de rotinas com visual inspirado no Asana, feito com HTML, CSS e JS separados." />
-  <link rel="stylesheet" href="../static/inicio.css" />
+  <link rel="stylesheet" href="inicio.css" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="app" data-layout="with-sidebar" data-theme="light">
+  <div class="app" data-layout="with-sidebar" data-theme="light" data-view="hoje">
 
-        <header class="topbar" role="banner">
-          <button class="btn icon only" aria-label="Alternar menu" id="btnToggleSidebar" title="Abrir/fechar menu">
-            <span class="icon" aria-hidden="true">☰</span>
-          </button>
+    <header class="topbar" role="banner">
+      <button class="btn icon only" aria-label="Alternar menu" id="btnToggleSidebar" title="Abrir/fechar menu">
+        <span class="icon" aria-hidden="true">☰</span>
+      </button>
 
-          <a href="#" class="brand" aria-label="Página inicial">
-            <span class="brand-mark" aria-hidden="true">✔</span>
-            <span class="brand-name">Life build</span>
+      <a href="#" class="brand" aria-label="Página inicial">
+        <span class="brand-mark" aria-hidden="true">✔</span>
+        <span class="brand-name">Life build</span>
+      </a>
+
+      <div class="spacer"></div>
+      
+      <div class="now" aria-live="polite">
+        <span id="todayDate" class="date">--/--/----</span>
+        <span id="nowTime" class="time">--:--</span>
+      </div>
+
+      <nav class="top-actions" aria-label="Ações rápidas">
+        <button class="btn ghost" id="btnQuickAdd" data-i18n="button.novaRotina">+ Nova rotina</button>
+        <div class="profile" id="profileMenu" aria-haspopup="menu">
+          <a class="avatar" href="#" aria-label="Abrir menu do usuário" id="btnOpenConfig">
+            <img src="img/deku.jpg" alt="Avatar do usuário" />
           </a>
-
-          <div class="spacer"></div>
-            <div class="now" aria-live="polite">
-              <span id="todayDate" class="date">--/--/----</span>
-              <span id="nowTime" class="time">--:--</span>
-          </div>
-
-          <nav class="top-actions" aria-label="Ações rápidas">
-            <button class="btn ghost" id="btnQuickAdd" data-i18n="button.novaRotina">+ Nova rotina</button>
-            <div class="profile" id="profileMenu" aria-haspopup="menu">
-              <a class="avatar" href="#" aria-label="Abrir menu do usuário" id="btnOpenConfig">
-                <img src="img/Ryo.jpg" alt="Avatar do usuário" />
-              </a>
-            </div>
-          </nav>
-      </header>
+        </div>
+      </nav>
+    </header>
 
     <div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Menu principal">
@@ -51,18 +52,15 @@
           </ul>
         </section>
 
-        <section class="section">
+        <section class="section" data-section="tags">
           <h2 class="section-title" data-i18n="menu.etiquetas">Etiquetas</h2>
           <ul class="tags" role="list" id="tagList">
-            <li><a class="tag" href="#" data-tag="pessoal" data-i18n="tag.pessoal">#pessoal</a></li>
-            <li><a class="tag" href="#" data-tag="trabalho" data-i18n="tag.trabalho">#trabalho</a></li>
-            <li><a class="tag" href="#" data-tag="saude" data-i18n="tag.saude">#saúde</a></li>
-            <li><a class="tag" href="#" data-tag="estudos" data-i18n="tag.estudos">#estudos</a></li>
+            <!-- Tags serão carregadas dinamicamente -->
           </ul>
           <button class="btn small" id="btnAddTag" data-i18n="button.novaEtiqueta">+ Nova etiqueta</button>
         </section>
 
-        <section class="section">
+        <section class="section" data-section="filters">
           <h2 class="section-title" data-i18n="menu.filtros">Filtros</h2>
           <ul class="menu" role="list">
             <li><a class="menu-link" href="#" data-filter="pendentes" data-i18n="filter.pendentes">Pendentes</a></li>
@@ -93,7 +91,7 @@
         </section>
 
         <section class="view" id="viewTodasRotinas" data-viewmode="lista" aria-labelledby="viewTitle">
-          <ul class="task-list" role="list"></ul>
+          <ul class="task-list" id="taskListAll" role="list"></ul>
         </section>
 
         <section class="view" id="viewQuadro" data-viewmode="quadro" aria-labelledby="viewTitle">
@@ -131,39 +129,36 @@
             <span class="calendar-title" id="calTitle">Mês Ano</span>
             <button class="btn icon only" id="calNext" aria-label="Próximo mês">›</button>
           </div>
-          <div class="calendar-grid"></div>
+          <div class="calendar-grid" id="calendarGrid"></div>
         </section>
 
         <!-- View de Gráficos -->
         <section class="view" id="viewGraficos" data-viewmode="graficos" aria-labelledby="viewTitle">
           <div class="container">
             <div class="charts-grid">
-                <!-- Gráfico de Barras - Progresso Semanal -->
-                <div class="chart-container">
-                    <h2 class="chart-title" data-i18n="chart.weeklyProgress">Progresso Semanal de Tarefas</h2>
-                    <div class="chart-wrapper">
-                        <canvas id="weeklyProgressChart"></canvas>
-                    </div>
-                    <p class="info-text" data-i18n="chart.infoWeekly">Acompanhe sua produtividade ao longo da semana</p>
+              <div class="chart-container">
+                <h2 class="chart-title" data-i18n="chart.weeklyProgress">Progresso Semanal de Tarefas</h2>
+                <div class="chart-wrapper">
+                  <canvas id="weeklyProgressChart"></canvas>
                 </div>
-                
-                <!-- Gráfico de Pizza - Distribuição de Tempo -->
-                <div class="chart-container">
-                    <h2 class="chart-title" data-i18n="chart.timeDistribution">Distribuição do Tempo</h2>
-                    <div class="chart-wrapper">
-                        <canvas id="timeDistributionChart"></canvas>
-                    </div>
-                    <p class="info-text" data-i18n="chart.infoTime">Veja como você distribui seu tempo entre diferentes atividades</p>
+                <p class="info-text" data-i18n="chart.infoWeekly">Acompanhe sua produtividade ao longo da semana</p>
+              </div>
+              
+              <div class="chart-container">
+                <h2 class="chart-title" data-i18n="chart.timeDistribution">Distribuição do Tempo</h2>
+                <div class="chart-wrapper">
+                  <canvas id="timeDistributionChart"></canvas>
                 </div>
-                
-                <!-- Gráfico de Linha - Hábitos ao Longo do Tempo -->
-                <div class="chart-container">
-                    <h2 class="chart-title" data-i18n="chart.habitsOverTime">Evolução de Hábitos</h2>
-                    <div class="chart-wrapper">
-                        <canvas id="habitsOverTimeChart"></canvas>
-                    </div>
-                    <p class="info-text" data-i18n="chart.infoHabits">Monitore a consistência dos seus hábitos ao longo do tempo</p>
+                <p class="info-text" data-i18n="chart.infoTime">Veja como você distribui seu tempo entre diferentes atividades</p>
+              </div>
+              
+              <div class="chart-container">
+                <h2 class="chart-title" data-i18n="chart.habitsOverTime">Evolução de Hábitos</h2>
+                <div class="chart-wrapper">
+                  <canvas id="habitsOverTimeChart"></canvas>
                 </div>
+                <p class="info-text" data-i18n="chart.infoHabits">Monitore a consistência dos seus hábitos ao longo do tempo</p>
+              </div>
             </div>
           </div>
         </section>
@@ -172,41 +167,40 @@
         <section class="view" id="viewConfig" data-viewmode="config" aria-labelledby="viewTitle">
           <div class="config-body">
             <main class="profile-container">
-                <section class="profile-header">
-                  <div class="profile-banner"></div>
-                  <img src="img/Ryo.jpg" alt="Foto do perfil" class="profile-photo" />
-                  <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" />
-                  <div class="profile-info">
-                    <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" />
-                    <p id="fullName">troque de icon ^</p>
-                  </div>
-                </section>
+              <section class="profile-header">
+                <div class="profile-banner"></div>
+                <img src="img/deku.jpg" alt="Foto do perfil" class="profile-photo" id="profilePhoto" />
+                <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" />
+                <div class="profile-info">
+                  <button class="btn small" id="changePhotoBtn" data-i18n="profile.changePhoto">Alterar Foto</button>
+                </div>
+              </section>
 
-                <section class="account-info">
-                  <div class="info-item">
-                    <label data-i18n="profile.nomeExibido">Nome exibido</label>
-                    <div class="info-field">
-                      <span id="displayName">Carlos</span>
-                      <button class="edit-btn" data-edit="displayName" data-i18n="profile.editar">Editar</button>
-                    </div>
+              <section class="account-info">
+                <div class="info-item">
+                  <label data-i18n="profile.nomeExibido">Nome exibido</label>
+                  <div class="info-field">
+                    <span id="displayName">Carlos</span>
+                    <button class="edit-btn" data-edit="displayName" data-i18n="profile.editar">Editar</button>
                   </div>
+                </div>
 
-                  <div class="info-item">
-                    <label data-i18n="profile.nomeUsuario">Nome de usuário</label>
-                    <div class="info-field">
-                      <span id="userName">onror</span>
-                      <button class="edit-btn" data-edit="userName" data-i18n="profile.editar">Editar</button>
-                    </div>
+                <div class="info-item">
+                  <label data-i18n="profile.nomeUsuario">Nome de usuário</label>
+                  <div class="info-field">
+                    <span id="userName">onror</span>
+                    <button class="edit-btn" data-edit="userName" data-i18n="profile.editar">Editar</button>
                   </div>
+                </div>
 
-                  <div class="info-item">
-                    <label data-i18n="profile.email">E-mail</label>
-                    <div class="info-field">
-                      <span id="userEmail">*****************@gmail.com</span>
-                      <a href="#" class="link" id="showEmail" data-i18n="profile.mostrar">Mostrar</a>
-                    </div>
+                <div class="info-item">
+                  <label data-i18n="profile.email">E-mail</label>
+                  <div class="info-field">
+                    <span id="userEmail">*****************@gmail.com</span>
+                    <a href="#" class="link" id="showEmail" data-i18n="profile.mostrar">Mostrar</a>
                   </div>
-                </section>
+                </div>
+              </section>
             </main>
             
             <h3 data-i18n="view.config">Configurações do Aplicativo</h3>
@@ -219,7 +213,7 @@
                 </label>
               </div>
               <div class="config-item">
-                <label for="notificationsToggle" data-i18n="label.notifications">Desativar notificações do navegador</label>
+                <label for="notificationsToggle" data-i18n="label.notifications">Ativar notificações do navegador</label>
                 <label class="switch">
                   <input type="checkbox" id="notificationsToggle">
                   <span class="slider"></span>
@@ -245,7 +239,7 @@
               <div class="config-item">
                 <label for="fontSize" data-i18n="label.fontSize">Tamanho da fonte</label>
                 <input type="range" id="fontSize" min="12" max="22" value="16">
-                <span id="fontSizeValue">16</span>px
+                <span id="fontSizeValue">16</span>
               </div>
 
               <div class="config-buttons">
@@ -258,6 +252,7 @@
       </main>
     </div>
 
+    <!-- Painel de Detalhes -->
     <aside class="details" id="detailsPanel" aria-label="Detalhes da rotina" aria-hidden="true">
       <header class="details-header">
         <h2 id="detailsTitle">Detalhes</h2>
@@ -440,6 +435,7 @@
       </form>
     </dialog>
 
+    <!-- Modal nova etiqueta -->
     <dialog class="modal small" id="modalAddTag" aria-labelledby="modalAddTagTitle" aria-modal="true">
       <form method="dialog" class="modal-content" id="addTagForm">
         <header class="modal-header">
@@ -463,13 +459,15 @@
       </form>
     </dialog>
 
+    <!-- Sistema de notificações -->
     <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
     <footer class="footer" role="contentinfo">
-      <small>NCDRP - 2025.</small>
+      <small>NCDRP - 2025</small>
     </footer>
   </div>
 
+  <!-- Templates -->
   <template id="tplTaskItem">
     <li class="task" draggable="true">
       <label class="checkbox">
@@ -500,8 +498,8 @@
         <span class="tag" data-i18n="tag.geral">#geral</span>
       </div>
       <footer class="card-actions">
-        <button class="btn tiny ghost" data-i18n="button.detalhes">Detalhes</button>
-        <button class="btn tiny ghost" data-i18n="button.concluir">Concluir</button>
+        <button class="btn tiny ghost" data-action="details" data-i18n="button.detalhes">Detalhes</button>
+        <button class="btn tiny ghost" data-action="toggle" data-i18n="button.concluir">Concluir</button>
       </footer>
     </li>
   </template>
@@ -513,6 +511,6 @@
     </div>
   </template>
 
-  <script defer src="../static/inicio.js"></script>
+  <script defer src="inicio.js"></script>
 </body>
 </html>
