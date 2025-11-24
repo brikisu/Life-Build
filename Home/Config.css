@@ -4,8 +4,8 @@
      - --primary: cor principal usada em botões, links e destaques
      - --primary-light / --primary-dark: variantes para foco/hover/estado
      ============================ */
-  --primary: #e7a740;        /* cor principal (ex.: botões primários) */
-  --primary-light: #df9029;  /* variante clara (ex.: foco ou bordas) */
+  --primary: #ff5454;        /* cor principal (ex.: botões primários) */
+  --primary-light: #ff5454dd;  /* variante clara (ex.: foco ou bordas) */
   --primary-dark: #02254e;   /* variante escura (hover, ativo) */
 
   /* ============================
@@ -42,7 +42,7 @@
      ============================ */
   --color-danger: #ef4444;        /* erro */
   --color-priority-high: #ef4444; /* alta prioridade (vermelho) */
-  --color-priority-medium: #f59e0b;/* média prioridade (amarelo) */
+  --color-priority-medium: #ff5454;/* média prioridade (amarelo) */
   --color-priority-low: #10b981;  /* baixa prioridade (verde) */
 
   /* ============================
@@ -276,7 +276,7 @@ img.profile-photo {
 
 .brand-name {
   font-size: 1.25rem;
-  color: #f59e0b;
+  color: #ff5454;
 }
 
 .brand-mark {
@@ -454,7 +454,7 @@ img.profile-photo {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f7ad19;
+    background-color: #ff5454;
     color: #020a13;
 }
 

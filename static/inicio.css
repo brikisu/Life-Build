@@ -45,6 +45,29 @@
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    
+    --lux-black: #050505;
+    --lux-black-2: #0c0c0c;
+    --lux-black-3: #111;
+    --lux-gold: #d4af37;
+    --lux-gold-soft: #b8962f;
+    --lux-gray: #1a1a1a;
+    --lux-white: #ffffff;
+    --lux-text: #e8e8e8;
+    --lux-soft: rgba(255, 255, 255, 0.04);
+    --lux-blur: blur(14px);
+    --transition: 0.25s ease;
+
+
+    --radius-xl: 22px;
+    --radius-lg: 18px;
+
+
+    --shadow-premium: 0 0 28px rgba(212, 175, 55, 0.18);
+    --shadow-soft: 0 5px 30px rgba(0, 0, 0, 0.45);
+
+
+    font-family: "Inter", sans-serif;
 }
 
 /*
@@ -99,13 +122,17 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: transparent;
-    color: var(--color-text-default);
-    line-height: 1.5;
-    transition: background-color 0.3s, color 0.3s;
+    background: var(--lux-black);
+    color: var(--lux-text);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    transition: var(--transition);
 }
-
+body.dark-mode {
+    background: #000;
+    color: var(--lux-white);
+}
 .app {
     background-color: var(--color-bg);
     display: flex;
@@ -240,16 +267,44 @@ a {
 
 /* Sidebar */
 .sidebar {
-    width: var(--sidebar-width);
+    width: 270px;
     min-width: var(--sidebar-width);
-    background-color: var(--color-sidebar-bg);
-    border-right: 1px solid var(--color-border);
-    padding: 16px;
+    background: linear-gradient(165deg, #000 0%, #0a0a0a 45%, #1a1a1a 100%);    padding: 25px;
     overflow-y: auto;
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+    transition: var(--transition);    
     flex-shrink: 0;
+    box-shadow: var(--shadow-soft);
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+.sidebar .logo {
+font-size: 30px;
+font-weight: 800;
+letter-spacing: 3.5px;
+text-transform: uppercase;
+color: var(--lux-gold);
+margin-bottom: 40px;
+text-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
 }
 
+
+.sidebar a {
+display: block;
+padding: 14px 20px;
+margin: 10px 0;
+border-radius: var(--radius-lg);
+text-decoration: none;
+color: var(--lux-text);
+font-weight: 500;
+transition: var(--transition);
+}
+
+.sidebar a:hover {
+background: var(--lux-black-3);
+border-left: 3px solid var(--lux-gold);
+padding-left: 26px;
+color: var(--lux-gold);
+box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.2);
+}
 /* Conteúdo Principal */
 .content {
     flex-grow: 1;
@@ -295,21 +350,24 @@ a {
 /* Botões */
 .btn,
 .btn-primary {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
+    padding: 13px 26px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--lux-gold);
+    color: var(--lux-gold);
+    background: transparent;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
-    background-color: var(--color-primary);
-    color: white;
-    font-size: 0.875rem;
+    transition: var(--transition);
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .btn:hover,
 .btn-primary:hover {
-    background-color: var(--color-primary-dark);
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+    background: var(--lux-gold);
+    color: #000;
+    box-shadow: var(--shadow-premium);
+    transform: translateY(-2px);
 }
 
 .btn.ghost {
@@ -1040,19 +1098,32 @@ input:checked+.slider:before {
 .board,
 .kanban {
     display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    padding-bottom: 10px;
+    gap: 22px;
+    padding: 25px;
 }
 
 .column,
 .kanban-col {
-    min-width: 300px;
-    width: 33.33%;
-    background-color: var(--color-bg-alt);
-    border-radius: 8px;
-    padding: 12px;
-    transition: background-color 0.2s;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-xl);
+    padding: 20px;
+    backdrop-filter: var(--lux-blur);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.kanban-task {
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-lg);
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: var(--transition);
+}
+
+.kanban-task:hover {
+background: rgba(0, 0, 0, 0.7);
+transform: scale(1.03);
+border-color: var(--lux-gold);
 }
 
 .column.drag-over {
@@ -1082,19 +1153,18 @@ input:checked+.slider:before {
 }
 
 .card {
-    background-color: var(--color-bg);
-    border-radius: 6px;
-    box-shadow: var(--shadow-sm);
-    padding: 12px;
-    margin-bottom: 8px;
-    border-left: 4px solid transparent;
-    transition: border-left-color 0.2s, box-shadow 0.2s;
-    cursor: grab;
-    border: 1px solid var(--color-border);
+    padding: 28px;
+    background: var(--lux-black-2);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    backdrop-filter: var(--lux-blur);
+    transition: var(--transition);
 }
 
 .card:hover {
-    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
 }
 
 .card-head {
@@ -1388,13 +1458,25 @@ input:checked+.slider:before {
    MODAIS (DIALOG)
 */
 .modal {
-    border: none;
-    padding: 0;
-    border-radius: 8px;
-    box-shadow: var(--shadow-md);
-    background-color: var(--color-bg-alt);
-    max-width: 500px;
-    width: 90%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(18px);
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+background: #0e0e0e;
+padding: 38px;
+border-radius: var(--radius-xl);
+width: 460px;
+border: 1px solid var(--lux-gold-soft);
+box-shadow: var(--shadow-premium);
 }
 
 .modal::backdrop {
@@ -1406,9 +1488,6 @@ input:checked+.slider:before {
     max-width: 400px;
 }
 
-.modal-content {
-    padding: 0;
-}
 
 .modal-header {
     display: flex;
@@ -1435,6 +1514,13 @@ input:checked+.slider:before {
     padding: 16px;
     border-top: 1px solid var(--color-border);
 }
+
+.modal h2 {
+color: var(--lux-gold);
+margin-bottom: 15px;
+font-size: 24px;
+letter-spacing: 1px;
+}ddd
 
 /*
    TOASTS E RODAPÉ
@@ -1553,7 +1639,20 @@ label {
     margin-bottom: 15px;
     color: var(--color-primary);
 }
+.fade-in {
+    animation: fadeIn 0.7s ease forwards;
+}
 
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+.glow-gold:hover {
+    box-shadow: 0 0 22px var(--lux-gold);
+}
 /*
    RESPONSIVIDADE (Celulares e Tablets)
 */
@@ -1685,4 +1784,21 @@ label {
         font-size: 0.7rem;
         padding: 1px 2px;
     }
+   .widget {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: var(--lux-blur);
+    border-radius: var(--radius-xl);
+    padding: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: var(--transition);
+}
+
+
+    .widget-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--lux-gold);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
 }
