@@ -315,6 +315,12 @@ const I18N = {
     'es-ES': 'Editar',
     'fr-FR': 'Modifier'
   },
+  'profile.changePhoto': {
+    'pt-BR': 'Alterar Foto',
+    'en-US': 'Change Photo',
+    'es-ES': 'Cambiar Foto',
+    'fr-FR': 'Changer la photo'
+  },
 
   // Painel de detalhes
   'details.titulo': {
@@ -643,7 +649,7 @@ const I18N = {
     'pt-BR': 'O título é obrigatório!',
     'en-US': 'Title is required!',
     'es-ES': '¡El título es obligatorio!',
-    'fr-FR': 'Le titre est obligatoire !'
+    'fr-FR': 'Le título est obligatoire !'
   },
 
   // Gráficos
@@ -862,7 +868,11 @@ const DOM = {
   recurringEndRadios: document.querySelectorAll('input[name="recurringEnd"]'),
   recurringOccurrences: document.getElementById('recurringOccurrences'),
   recurringEndDate: document.getElementById('recurringEndDate'),
-  recurringStartDate: document.getElementById('recurringStartDate')
+  recurringStartDate: document.getElementById('recurringStartDate'),
+  // Foto do perfil
+  profilePhoto: document.getElementById('profilePhoto'),
+  profilePhotoInput: document.getElementById('profilePhotoInput'),
+  changePhotoBtn: document.getElementById('changePhotoBtn')
 };
 
 // Templates <template> do HTML (clonamos estes quando precisamos criar elementos)
@@ -1017,11 +1027,15 @@ function init() {
     if (!isNaN(idNum) && idNum >= nextId) nextId = idNum + 1;
   });
 
+  // Corrigir problemas do DOM
+  fixDOMIssues();
+
   // Configura listeners de eventos (interações do usuário)
   setupEventListeners();
 
   // Configurar troca de foto do perfil
   setupProfilePhotoChange();
+  setupPhotoChangeButton();
 
   // Carregar foto do perfil salva
   loadProfilePhoto();
@@ -1043,16 +1057,57 @@ function init() {
   // Aplica traduções
   applyLanguageToDOM();
 
-  // Renderiza etiquetas - IMPORTANTE: Adicionar esta linha
+  // Renderiza etiquetas
   renderTags();
+
+  // Atualizar visibilidade dos filtros
+  updateFiltersVisibility();
 
   // Inicializar gráficos se estiver na view de gráficos
   if (state.currentView === 'graficos') {
-    setTimeout(initCharts, 100); // Pequeno delay para garantir que o DOM esteja pronto
+    setTimeout(initCharts, 100);
   }
 
   // Renderiza a interface inicial de acordo com a view selecionada
   render();
+}
+
+// Função para verificar e corrigir elementos do DOM
+function fixDOMIssues() {
+  // Verificar se elementos críticos existem
+  if (!DOM.viewGraficos) {
+    console.warn('Elemento viewGraficos não encontrado');
+  }
+  
+  if (!DOM.calendarGrid) {
+    console.warn('Elemento calendarGrid não encontrado');
+  }
+  
+  // Garantir que as seções de filtros e tags tenham os atributos corretos
+  const filtersSection = document.querySelector('.section:nth-child(3)');
+  const tagsSection = document.querySelector('.section:nth-child(2)');
+  
+  if (filtersSection) filtersSection.setAttribute('data-section', 'filters');
+  if (tagsSection) tagsSection.setAttribute('data-section', 'tags');
+}
+
+// Controlar visibilidade dos filtros baseado na view atual
+function updateFiltersVisibility() {
+  const filtersSection = document.querySelector('.section[data-section="filters"]');
+  const tagsSection = document.querySelector('.section[data-section="tags"]');
+  
+  // Views onde filtros e etiquetas devem aparecer
+  const showInViews = ['hoje', 'todasRotinas', 'calendario'];
+  
+  if (filtersSection && tagsSection) {
+    if (showInViews.includes(state.currentView)) {
+      filtersSection.style.display = 'block';
+      tagsSection.style.display = 'block';
+    } else {
+      filtersSection.style.display = 'none';
+      tagsSection.style.display = 'none';
+    }
+  }
 }
 
 /*
@@ -1088,7 +1143,6 @@ function loadData() {
       DOM.app.setAttribute('data-layout', state.showSidebar ? 'with-sidebar' : 'without-sidebar');
     }
   } catch (err) {
-    // Em caso de erro de parsing, restauramos o padrão para evitar travar a app
     console.error('Erro ao carregar dados do storage:', err);
     state.routines = DEFAULT_DATA.routines.slice();
     state.tags = DEFAULT_DATA.tags.slice();
@@ -1129,10 +1183,8 @@ function generateId() {
 }
 
 // Mostrar um toast (notificação temporária)
-// message: texto, type: 'info'|'success'|'error' (usado apenas para classes)
 function showToast(message, type = 'info', duration = 3000) {
   if (!templates.toast || !DOM.toastsContainer) {
-    // fallback console se os elementos não existirem
     console.log(`[${type}] ${message}`);
     return;
   }
@@ -1151,10 +1203,9 @@ function showToast(message, type = 'info', duration = 3000) {
   const closeBtn = toast.querySelector('.toast-close');
   if (closeBtn) closeBtn.addEventListener('click', () => toast.remove());
 
-  // Auto-destrói após 'duration' ms (aplica uma classe para animação, se existir)
+  // Auto-destrói após 'duration' ms
   setTimeout(() => {
     toast.classList.add('fade-out');
-    // remove depois da transição (evita remoção imediata cortando animação)
     toast.addEventListener('transitionend', () => {
       try { toast.remove(); } catch (e) { }
     });
@@ -1164,11 +1215,9 @@ function showToast(message, type = 'info', duration = 3000) {
 // Converte um objeto Date em string 'YYYY-MM-DD' para inputs do tipo date
 function formatDateForInput(date) {
   if (!date) return '';
-  // Se for string já no formato ISO, tenta apenas retornar a parte de data
   if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(date)) {
     return date.split('T')[0];
   }
-  // Se for Date
   if (date instanceof Date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -1199,10 +1248,9 @@ function addNewRoutine({ title, description, date, time, priority, tag, status =
   // Normalizar etiqueta e verificar se existe
   let normalizedTag = tag ? normalizeTag(tag) : undefined;
   if (normalizedTag && !getTagByName(normalizedTag)) {
-    // Se a etiqueta não existe, criar automaticamente
     addNewTag({
       name: normalizedTag,
-      color: '#888' // Cor padrão
+      color: '#888'
     });
   }
 
@@ -1244,7 +1292,6 @@ function toggleTaskCompletion(taskId) {
     task.status = 'done';
     showToast(`Rotina "${task.title}" concluída!`, 'success');
   } else {
-    // se estava 'done' e foi desmarcada, movemos para 'todo' por padrão
     if (task.status === 'done') task.status = 'todo';
     showToast(`Rotina "${task.title}" marcada como pendente.`, 'info');
   }
@@ -1268,7 +1315,6 @@ function openTaskDetails(taskId) {
 
   // Ajuste de data para input evitando problemas de timezone
   if (task.date) {
-    // cria um objeto Date a partir do string 'YYYY-MM-DD'
     const d = new Date(task.date + 'T00:00:00');
     DOM.taskDate.value = formatDateForInput(d);
   } else {
@@ -1281,7 +1327,7 @@ function openTaskDetails(taskId) {
   const detailsTitle = document.getElementById('detailsTitle');
   if (detailsTitle) detailsTitle.textContent = task.title;
 
-  // Exibe painel de detalhes (aria-hidden e classes para animação)
+  // Exibe painel de detalhes
   DOM.detailsPanel.setAttribute('aria-hidden', 'false');
   DOM.detailsPanel.classList.add('is-open');
 }
@@ -1292,13 +1338,11 @@ function closeDetails() {
   if (!DOM.detailsPanel) return;
   DOM.detailsPanel.setAttribute('aria-hidden', 'true');
   DOM.detailsPanel.classList.remove('is-open');
-  // Reseta o formulário visualmente (não altera dados não salvos)
   if (DOM.detailsForm) DOM.detailsForm.reset();
 }
 
 // Salva as alterações feitas no painel de detalhes
 function saveTaskDetails(e) {
-  // This function intended to be attached to detailsForm submit
   if (e && e.preventDefault) e.preventDefault();
   if (!state.selectedTask) return;
 
@@ -1453,7 +1497,7 @@ function addNewTag({ name, color }) {
   }
 
   const newTag = {
-    id: `tag${Date.now()}`, // ID único baseado no timestamp
+    id: `tag${Date.now()}`,
     name: normalized,
     color: color || '#888'
   };
@@ -1474,60 +1518,213 @@ function addNewTag({ name, color }) {
   return newTag;
 }
 
-// Renderiza as tags na sidebar e no datalist do formulário
+/*
+   9.1) GESTÃO AVANÇADA DE ETIQUETAS (Exclusão)
+*/
+
+// Função para excluir uma etiqueta
+function deleteTag(tagId) {
+    const tag = state.tags.find(t => t.id === tagId);
+    if (!tag) return;
+
+    // Verificar se a etiqueta está em uso
+    const routinesUsingTag = state.routines.filter(routine => routine.tag === tag.name);
+    
+    if (routinesUsingTag.length > 0) {
+        showDeleteTagConfirmation(tag, routinesUsingTag.length);
+    } else {
+        confirmDeleteTag(tag);
+    }
+}
+
+// Mostrar modal de confirmação para etiquetas em uso
+function showDeleteTagConfirmation(tag, usageCount) {
+    const modal = document.createElement('dialog');
+    modal.className = 'modal confirm-delete';
+    modal.innerHTML = `
+        <form method="dialog" class="modal-content">
+            <header class="modal-header">
+                <h2>Excluir Etiqueta</h2>
+            </header>
+            <div class="modal-body">
+                <p>A etiqueta <strong>#${tag.name}</strong> está sendo usada em <strong>${usageCount}</strong> rotina(s).</p>
+                <p>O que você gostaria de fazer?</p>
+            </div>
+            <footer class="modal-footer confirm-delete-actions">
+                <button class="btn ghost" value="cancel">Cancelar</button>
+                <button class="btn danger" value="remove">Remover das rotinas e excluir</button>
+                <button class="btn" value="keep">Manter etiqueta</button>
+            </footer>
+        </form>
+    `;
+
+    document.body.appendChild(modal);
+    
+    if (modal.showModal) {
+        modal.showModal();
+    }
+
+    modal.addEventListener('close', () => {
+        const returnValue = modal.returnValue;
+        if (returnValue === 'remove') {
+            removeTagFromRoutinesAndDelete(tag);
+        }
+        modal.remove();
+    });
+}
+
+// Remover etiqueta de todas as rotinas e excluir
+function removeTagFromRoutinesAndDelete(tag) {
+    // Remover a etiqueta de todas as rotinas
+    state.routines.forEach(routine => {
+        if (routine.tag === tag.name) {
+            routine.tag = undefined;
+        }
+    });
+
+    // Excluir a etiqueta
+    confirmDeleteTag(tag);
+    
+    const lang = getLang();
+    const successMessages = {
+        'pt-BR': `Etiqueta #${tag.name} removida de todas as rotinas e excluída!`,
+        'en-US': `Tag #${tag.name} removed from all routines and deleted!`,
+        'es-ES': `¡Etiqueta #${tag.name} eliminada de todas las rutinas y borrada!`,
+        'fr-FR': `Étiquette #${tag.name} supprimée de toutes les routines et effacée !`
+    };
+
+    showToast(successMessages[lang] || successMessages['pt-BR'], 'success');
+}
+
+// Confirmar exclusão da etiqueta
+function confirmDeleteTag(tag) {
+    state.tags = state.tags.filter(t => t.id !== tag.id);
+    saveData();
+    renderTags();
+    
+    const lang = getLang();
+    const successMessages = {
+        'pt-BR': `Etiqueta #${tag.name} excluída!`,
+        'en-US': `Tag #${tag.name} deleted!`,
+        'es-ES': `¡Etiqueta #${tag.name} eliminada!`,
+        'fr-FR': `Étiquette #${tag.name} supprimée !`
+    };
+
+    showToast(successMessages[lang] || successMessages['pt-BR'], 'success');
+}
+
+// Contar quantas rotinas usam uma etiqueta
+function countTagUsage(tagName) {
+    return state.routines.filter(routine => routine.tag === tagName).length;
+}
+
+/*
+   9.2) RENDERIZAÇÃO ATUALIZADA DAS ETIQUETAS
+*/
+
+// Renderiza as tags na sidebar com botão de exclusão
 function renderTags() {
-  if (!DOM.tagList) return;
+    if (!DOM.tagList) return;
 
-  // Limpar lista atual
-  DOM.tagList.innerHTML = '';
+    // Limpar lista atual
+    DOM.tagList.innerHTML = '';
 
-  // Atualizar datalist para sugestões
-  const datalist = document.getElementById('datalistTags');
-  if (datalist) {
-    datalist.innerHTML = '';
+    // Atualizar datalist para sugestões
+    const datalist = document.getElementById('datalistTags');
+    if (datalist) {
+        datalist.innerHTML = '';
 
+        state.tags.forEach(tag => {
+            const option = document.createElement('option');
+            option.value = `#${tag.name}`;
+            datalist.appendChild(option);
+        });
+    }
+
+    // Se não houver etiquetas, mostrar mensagem
+    if (state.tags.length === 0) {
+        const emptyMsg = document.createElement('li');
+        emptyMsg.className = 'empty-state';
+        emptyMsg.textContent = 'Nenhuma etiqueta criada';
+        emptyMsg.style.padding = '8px';
+        emptyMsg.style.color = 'var(--color-text-secondary)';
+        emptyMsg.style.fontStyle = 'italic';
+        DOM.tagList.appendChild(emptyMsg);
+        return;
+    }
+
+    // Renderizar cada etiqueta
     state.tags.forEach(tag => {
-      const option = document.createElement('option');
-      option.value = `#${tag.name}`;
-      datalist.appendChild(option);
+        const li = document.createElement('li');
+        const tagContainer = document.createElement('div');
+        tagContainer.className = 'tag-container';
+        tagContainer.style.position = 'relative';
+        tagContainer.style.display = 'inline-block';
+
+        const a = document.createElement('a');
+        a.className = 'tag';
+        a.href = '#';
+        a.dataset.tag = tag.name;
+        a.textContent = `#${tag.name}`;
+        
+        // Adicionar contador de uso
+        const usageCount = countTagUsage(tag.name);
+        if (usageCount > 0) {
+            const countSpan = document.createElement('span');
+            countSpan.className = 'tag-count';
+            countSpan.textContent = usageCount;
+            a.appendChild(countSpan);
+        }
+
+        // Verificar se esta etiqueta está ativa
+        const activeTagLink = document.querySelector('.tag.is-active');
+        if (activeTagLink && activeTagLink.dataset.tag === tag.name) {
+            a.classList.add('is-active');
+        }
+
+        // Aplicar cor da etiqueta
+        a.style.borderColor = tag.color;
+        a.style.color = tag.color;
+        a.style.backgroundColor = tag.color + '20';
+
+        // Botão de excluir
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'tag-delete';
+        deleteBtn.innerHTML = '✕';
+        deleteBtn.setAttribute('aria-label', `Excluir etiqueta ${tag.name}`);
+        deleteBtn.title = 'Excluir etiqueta';
+        
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteTag(tag.id);
+        });
+
+        a.appendChild(deleteBtn);
+
+        // Evento de clique para filtrar por etiqueta
+        a.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('tag-delete')) {
+                e.preventDefault();
+                filterByTag(tag.name);
+            }
+        });
+
+        // Efeitos de hover melhorados
+        a.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-1px)';
+            this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+        });
+
+        a.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+
+        tagContainer.appendChild(a);
+        li.appendChild(tagContainer);
+        DOM.tagList.appendChild(li);
     });
-  }
-
-  // Se não houver etiquetas, mostrar mensagem
-  if (state.tags.length === 0) {
-    const emptyMsg = document.createElement('li');
-    emptyMsg.className = 'empty-state';
-    emptyMsg.textContent = 'Nenhuma etiqueta criada';
-    emptyMsg.style.padding = '8px';
-    emptyMsg.style.color = 'var(--color-text-secondary)';
-    emptyMsg.style.fontStyle = 'italic';
-    DOM.tagList.appendChild(emptyMsg);
-    return;
-  }
-
-  // Renderizar cada etiqueta
-  state.tags.forEach(tag => {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.className = 'tag';
-    a.href = '#';
-    a.dataset.tag = tag.name;
-    a.textContent = `#${tag.name}`;
-
-    // Aplicar cor da etiqueta
-    a.style.borderColor = tag.color;
-    a.style.color = tag.color;
-    a.style.backgroundColor = tag.color + '20'; // Adiciona transparência
-
-    // Evento de clique para filtrar por etiqueta
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      filterByTag(tag.name);
-    });
-
-    li.appendChild(a);
-    DOM.tagList.appendChild(li);
-  });
 }
 
 // Função para filtrar por etiqueta
@@ -1537,13 +1734,18 @@ function filterByTag(tagName) {
     DOM.filterLinks.forEach(l => l.classList.remove('is-active'));
   }
 
-  // Filtrar tarefas pela etiqueta
-  const filteredTasks = state.routines.filter(routine =>
-    routine.tag && routine.tag.toLowerCase() === tagName.toLowerCase()
-  );
+  // Limpar outras etiquetas ativas
+  const allTags = document.querySelectorAll('.tag');
+  allTags.forEach(tag => tag.classList.remove('is-active'));
 
-  // Renderizar lista filtrada
-  renderTaskListWithTasks(filteredTasks);
+  // Marcar etiqueta atual como ativa
+  const currentTag = document.querySelector(`.tag[data-tag="${tagName}"]`);
+  if (currentTag) {
+    currentTag.classList.add('is-active');
+  }
+
+  // Renderizar a view atual com o filtro aplicado
+  render();
 
   const lang = getLang();
   const filterMessages = {
@@ -1554,7 +1756,44 @@ function filterByTag(tagName) {
   };
 
   showToast(filterMessages[lang] || filterMessages['pt-BR'], 'info');
-}
+
+      // Função para abrir modal
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    // Função para fechar modal
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Fechar modal ao clicar fora do conteúdo
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            closeModal(e.target.id);
+        }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const openModals = document.querySelectorAll('.modal.is-open');
+            openModals.forEach(modal => {
+                closeModal(modal.id);
+            });
+        }
+    });
+    }
 
 // Função para obter etiqueta por nome
 function getTagByName(tagName) {
@@ -1585,11 +1824,16 @@ function getFilteredTasks() {
       });
       break;
     case 'todasRotinas':
-      // sem filtro por data
+      // sem filtro por data - mostra todas
       break;
     case 'calendario':
       // Apenas tarefas com data aparecem no calendário
       tasks = tasks.filter(task => task.date);
+      break;
+    case 'graficos':
+    case 'config':
+      // Não mostrar tasks nessas views
+      tasks = [];
       break;
     default:
       break;
@@ -1599,36 +1843,44 @@ function getFilteredTasks() {
   const activeFilterLink = document.querySelector('.menu-link[data-filter].is-active');
   if (activeFilterLink) {
     const filter = activeFilterLink.dataset.filter;
-    switch (filter) {
-      case 'pendentes':
-        tasks = tasks.filter(t => !t.completed);
-        break;
-      case 'concluidas':
-        tasks = tasks.filter(t => t.completed);
-        break;
-      case 'alta':
-        tasks = tasks.filter(t => t.priority === 'high');
-        break;
-      case 'media':
-        tasks = tasks.filter(t => t.priority === 'medium');
-        break;
-      case 'baixa':
-        tasks = tasks.filter(t => t.priority === 'low');
-        break;
-      case 'semData':
-        tasks = tasks.filter(t => !t.date);
-        break;
-      default:
-        break;
-    }
-  } else {
-    // Se não houver filtro ativo, aplica preferência global de mostrar ou não concluídas
+    tasks = applyFilter(tasks, filter);
+  }
+
+  // Filtro por etiqueta ativo
+  const activeTagLink = document.querySelector('.tag.is-active');
+  if (activeTagLink) {
+    const tagName = activeTagLink.dataset.tag;
+    tasks = tasks.filter(task => task.tag && task.tag.toLowerCase() === tagName.toLowerCase());
+  }
+
+  // Se não houver filtro ativo, aplica preferência global de mostrar ou não concluídas
+  if (!activeFilterLink && !activeTagLink) {
     if (!state.preferences.showCompleted) {
       tasks = tasks.filter(t => !t.completed);
     }
   }
 
   return tasks;
+}
+
+// Aplica filtro específico ao array de tarefas
+function applyFilter(tasks, filter) {
+  switch (filter) {
+    case 'pendentes':
+      return tasks.filter(t => !t.completed);
+    case 'concluidas':
+      return tasks.filter(t => t.completed);
+    case 'alta':
+      return tasks.filter(t => t.priority === 'high');
+    case 'media':
+      return tasks.filter(t => t.priority === 'medium');
+    case 'baixa':
+      return tasks.filter(t => t.priority === 'low');
+    case 'semData':
+      return tasks.filter(t => !t.date);
+    default:
+      return tasks;
+  }
 }
 
 /*
@@ -1649,15 +1901,12 @@ function updateViewTitle() {
 
 // Renderiza a lista principal (usada no modo 'lista')
 function renderTaskList() {
-  // Decide qual container usar dependendo da view ativa.
-  // Por padrão tentamos usar a .task-list dentro da view ativa.
   let targetList = null;
-  const activeViewId = `view${state.currentView.charAt(0).toUpperCase()}${state.currentView.slice(1)}`; // ex: 'todasRotinas' -> 'viewTodasRotinas'
+  const activeViewId = `view${state.currentView.charAt(0).toUpperCase()}${state.currentView.slice(1)}`;
   const activeView = document.getElementById(activeViewId);
   if (activeView) {
     targetList = activeView.querySelector('.task-list');
   }
-  // fallback para o container padrão (hoje)
   if (!targetList) targetList = DOM.taskListToday;
   if (!targetList) return;
   targetList.innerHTML = '';
@@ -1674,7 +1923,6 @@ function renderTaskList() {
 
 // Renderiza lista específica (usada quando filtramos por tag, por exemplo)
 function renderTaskListWithTasks(tasks) {
-  // Reusa a lógica de escolher o container correto (view-aware)
   let targetList = null;
   const activeViewId = `view${state.currentView.charAt(0).toUpperCase()}${state.currentView.slice(1)}`;
   const activeView = document.getElementById(activeViewId);
@@ -1699,7 +1947,11 @@ function renderTaskListWithTasks(tasks) {
 // Render principal que decide qual modo desenhar
 function render() {
   updateViewTitle();
-  renderTags(); // garante que as tags estejam atualizadas
+  renderTags();
+  updateFilterIndicators();
+  
+  // Atualizar visibilidade dos filtros
+  updateFiltersVisibility();
 
   // Oculta todas as views primeiro
   const views = document.querySelectorAll('.view');
@@ -1725,7 +1977,7 @@ function render() {
       break;
     case 'graficos':
       if (DOM.viewGraficos) DOM.viewGraficos.classList.add('is-active');
-      initCharts(); // ← INICIALIZAR GRÁFICOS AQUI
+      initCharts();
       break;
     default:
       if (DOM.viewHoje) DOM.viewHoje.classList.add('is-active');
@@ -1779,13 +2031,13 @@ function renderCalendar() {
   const year = state.currentDate.getFullYear();
   const month = state.currentDate.getMonth();
 
-  // Nome do mês (em PT-BR)
+  // Nome do mês
   const lang = getLang();
   const monthNames = I18N.months[lang];
   DOM.calTitle.textContent = `${monthNames[month]} ${year}`;
 
   // Determina primeiro dia da semana do mês e quantidade de dias
-  const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 = domingo
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
 
@@ -1804,12 +2056,14 @@ function renderCalendar() {
     DOM.calendarGrid.appendChild(dayEl);
   }
 
-  // Dias do mês atual
+  // Dias do mês atual - USANDO TAREFAS FILTRADAS
+  const tasks = getFilteredTasks();
   const today = new Date();
+  
   for (let d = 1; d <= daysInMonth; d++) {
     const isToday = (today.getDate() === d && today.getMonth() === month && today.getFullYear() === year);
     const fullDate = new Date(year, month, d);
-    const dayEl = createCalendarDay(d, false, isToday, fullDate);
+    const dayEl = createCalendarDay(d, false, isToday, fullDate, tasks);
     DOM.calendarGrid.appendChild(dayEl);
   }
 
@@ -1823,13 +2077,8 @@ function renderCalendar() {
   }
 }
 
-/* Cria um elemento de dia para o calendário
-   day: número do dia
-   isOtherMonth: boolean, se o dia pertence a outro mês (visualmente diferenciado)
-   isToday: boolean
-   fullDate: Date (opcional) - se fornecido, busca eventos para esse dia
-*/
-function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null) {
+/* Cria um elemento de dia para o calendário */
+function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null, tasks = []) {
   const cell = document.createElement('div');
   cell.className = 'calendar-day';
   if (isOtherMonth) cell.classList.add('other-month');
@@ -1842,11 +2091,10 @@ function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null) 
   cell.appendChild(number);
 
   // Se fullDate é passado, queremos também colocar eventos desse dia
-  if (fullDate) {
-    // Busca tarefas cuja data corresponde ao fullDate
-    const tasksForDay = state.routines.filter(task => {
+  if (fullDate && tasks) {
+    // Busca tarefas cuja data corresponde ao fullDate DENTRO DAS TAREFAS JÁ FILTRADAS
+    const tasksForDay = tasks.filter(task => {
       if (!task.date) return false;
-      // Normaliza para midnight local
       const taskDate = new Date(task.date + 'T00:00:00');
       return taskDate.getDate() === fullDate.getDate()
         && taskDate.getMonth() === fullDate.getMonth()
@@ -1857,15 +2105,12 @@ function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null) 
     tasksForDay.forEach(task => {
       const ev = document.createElement('button');
       ev.className = `calendar-event priority-${task.priority || 'medium'}`;
-      // Adicionar classe se a tarefa faz parte de uma rotina com múltiplas datas
       if (task.isRecurring || task.parentRoutineId) {
         ev.classList.add('has-multiple-dates');
       }
-      // Pode truncar o título se for muito grande (ex.: 30 chars)
       ev.textContent = task.title.length > 30 ? task.title.slice(0, 27) + '...' : task.title;
-      // Ao clicar no evento, abre detalhes
       ev.addEventListener('click', (e) => {
-        e.stopPropagation(); // evita que o clique dispare outras ações
+        e.stopPropagation();
         openTaskDetails(task.id);
       });
       cell.appendChild(ev);
@@ -1873,7 +2118,6 @@ function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null) 
 
     // Ao clicar no dia (fora de eventos), abre modal de período personalizado com a data preenchida
     cell.addEventListener('click', (e) => {
-      // Se o clique for num evento, já tratamos acima
       if (e.target && e.target.matches('.calendar-event')) return;
       if (!DOM.modalCustomPeriod) return;
       const dateStr = formatDateForInput(fullDate);
@@ -1888,13 +2132,12 @@ function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null) 
 }
 
 /*
-  12) CRIAÇÃO DE ELEMENTOS (task item e board card)
+   12) CRIAÇÃO DE ELEMENTOS (task item e board card)
 */
 
 // Cria e retorna um elemento li.populado para a lista usando o template tplTaskItem
 function createTaskElement(task) {
   if (!templates.taskItem) {
-    // fallback simples
     const li = document.createElement('li');
     li.textContent = task.title;
     return li;
@@ -1903,11 +2146,8 @@ function createTaskElement(task) {
   // Clona o template
   const clone = templates.taskItem.content.cloneNode(true);
   const li = clone.querySelector('li');
-  // Marca ID no dataset para referência
   li.dataset.taskId = task.id;
-  // Adiciona classe visual se concluída
   if (task.completed) li.classList.add('is-completed');
-  // Adicionar classe se a tarefa faz parte de uma rotina com múltiplas datas
   if (task.isRecurring || task.parentRoutineId) {
     li.classList.add('has-multiple-dates');
   }
@@ -1929,7 +2169,6 @@ function createTaskElement(task) {
     if (task.date) {
       const d = new Date(task.date + 'T00:00:00');
       dueEl.textContent = d.toLocaleDateString(getLang());
-      // marca atraso se não concluída e data passada
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (!task.completed && d < today) dueEl.classList.add('overdue');
@@ -1942,14 +2181,14 @@ function createTaskElement(task) {
   // Priority
   const prioEl = clone.querySelector('.priority');
   if (prioEl) {
-    prioEl.className = 'priority'; // reset classes
+    prioEl.className = 'priority';
     const priorityText = {
       'high': t('filter.alta'),
       'medium': t('filter.media'),
       'low': t('filter.baixa')
     };
     prioEl.textContent = priorityText[task.priority] || t('filter.media');
-    prioEl.classList.add(task.priority || 'medium'); // adiciona classe 'high'|'medium'|'low' para estilo
+    prioEl.classList.add(task.priority || 'medium');
   }
 
   // Tag
@@ -1959,8 +2198,7 @@ function createTaskElement(task) {
       tagEl.textContent = `#${task.tag}`;
       const tagInfo = state.tags.find(t => t.name === task.tag);
       if (tagInfo) {
-        // define cor de fundo levemente translúcida e cor do texto
-        tagEl.style.backgroundColor = tagInfo.color + '20'; // adiciona transparência simples
+        tagEl.style.backgroundColor = tagInfo.color + '20';
         tagEl.style.color = tagInfo.color;
       }
     } else {
@@ -1977,7 +2215,6 @@ function createTaskElement(task) {
     e.dataTransfer.setData('text/plain', task.id);
   });
 
-  // Retorna o fragmento (elemento li)
   return clone;
 }
 
@@ -1994,7 +2231,6 @@ function createBoardCard(task) {
   card.dataset.taskId = task.id;
   card.draggable = true;
   if (task.completed) card.classList.add('is-completed');
-  // Adicionar classe se a tarefa faz parte de uma rotina com múltiplas datas
   if (task.isRecurring || task.parentRoutineId) {
     card.classList.add('has-multiple-dates');
   }
@@ -2056,8 +2292,7 @@ function createBoardCard(task) {
   // Ações (detalhes e concluir/desfazer)
   const actionButtons = clone.querySelectorAll('.card-actions button');
   if (actionButtons.length >= 2) {
-    actionButtons[0].addEventListener('click', () => openTaskDetails(task.id)); // Detalhes
-    // Botão concluir / desfazer
+    actionButtons[0].addEventListener('click', () => openTaskDetails(task.id));
     actionButtons[1].textContent = task.completed ? t('button.desfazer') : t('button.concluir');
     actionButtons[1].addEventListener('click', () => toggleTaskCompletion(task.id));
   }
@@ -2071,32 +2306,28 @@ function createBoardCard(task) {
 }
 
 /*
-  13) DRAG & DROP (Kanban)
+   13) DRAG & DROP (Kanban)
 */
 
 // Configura eventos de drag & drop nas colunas
 function setupDragAndDrop() {
-  // Seleciona colunas .column
   const columns = document.querySelectorAll('.column');
   if (!columns || columns.length === 0) return;
 
   columns.forEach(col => {
-    // Quando um item é arrastado por cima de uma coluna
     col.addEventListener('dragenter', (e) => {
       e.preventDefault();
       col.classList.add('drag-over');
     });
     col.addEventListener('dragover', (e) => {
-      e.preventDefault(); // necessário para permitir drop
+      e.preventDefault();
     });
     col.addEventListener('dragleave', () => {
       col.classList.remove('drag-over');
     });
-    // Evento drop final que move a tarefa entre status
     col.addEventListener('drop', handleDrop);
   });
 
-  // Garante que o documento permita drops (evita abrir arquivos arrastados)
   document.addEventListener('dragover', (e) => { e.preventDefault(); });
 }
 
@@ -2106,21 +2337,18 @@ function handleDrop(e) {
   const col = e.currentTarget;
   col.classList.remove('drag-over');
 
-  // Recupera o taskId do dataTransfer
   const taskId = e.dataTransfer.getData('text/plain');
   if (!taskId) return;
 
-  const newStatus = col.dataset.col; // espera 'todo' | 'doing' | 'done'
+  const newStatus = col.dataset.col;
   const task = state.routines.find(t => t.id === taskId);
   if (!task) return;
 
-  // Atualiza status e completed de acordo
   task.status = newStatus || 'todo';
   task.completed = newStatus === 'done';
 
-  // Persistência e render
   saveData();
-  render(); // chama render (ou renderBoard para menor custo)
+  render();
 
   const statusText = {
     'todo': 'A fazer',
@@ -2131,7 +2359,7 @@ function handleDrop(e) {
 }
 
 /*
-  14) CONFIGURAÇÕES E PREFERÊNCIAS
+   14) CONFIGURAÇÕES E PREFERÊNCIAS - FUNÇÕES ATUALIZADAS
 */
 
 // Carrega as configurações salvas
@@ -2153,17 +2381,17 @@ function loadSettings() {
       DOM.appLanguage.value = state.preferences.language;
     }
 
-    // Fonte
+    // Fonte - APLICAR AO ELEMENTO HTML (RAIZ)
     if (DOM.fontFamily && state.preferences.fontFamily) {
       DOM.fontFamily.value = state.preferences.fontFamily;
-      document.body.style.fontFamily = state.preferences.fontFamily;
+      document.documentElement.style.fontFamily = state.preferences.fontFamily;
     }
 
-    // Tamanho da fonte
+    // Tamanho da fonte - APLICAR AO ELEMENTO HTML (RAIZ)
     if (DOM.fontSize && state.preferences.fontSize) {
       DOM.fontSize.value = state.preferences.fontSize;
       if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = state.preferences.fontSize + 'px';
-      document.body.style.fontSize = state.preferences.fontSize + 'px';
+      document.documentElement.style.fontSize = state.preferences.fontSize + 'px';
     }
   }
 
@@ -2171,7 +2399,7 @@ function loadSettings() {
   loadProfilePhoto();
 }
 
-// Salva as configurações
+// Salva as configurações - FUNÇÃO ATUALIZADA
 function saveSettings() {
   state.preferences = {
     theme: DOM.themeToggle && DOM.themeToggle.checked ? 'dark' : 'light',
@@ -2192,7 +2420,6 @@ function saveSettings() {
         }
         saveData();
       } else {
-        // Enviar notificação de teste quando ativadas
         setTimeout(sendTestNotification, 1000);
       }
     });
@@ -2205,17 +2432,18 @@ function saveSettings() {
 
   // Aplica as configurações
   DOM.app.setAttribute('data-theme', state.preferences.theme);
-  if (DOM.fontFamily) document.body.style.fontFamily = state.preferences.fontFamily;
-  if (DOM.fontSize) {
-    document.body.style.fontSize = state.preferences.fontSize + 'px';
-    if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = state.preferences.fontSize + 'px';
-  }
+  
+  // APLICAR FONTE E TAMANHO DA FONTE AO ELEMENTO HTML (RAIZ)
+  document.documentElement.style.fontFamily = state.preferences.fontFamily;
+  document.documentElement.style.fontSize = state.preferences.fontSize + 'px';
+  
+  if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = state.preferences.fontSize + 'px';
 
   saveData();
   showToastTranslation('toast.saved', 'success');
 }
 
-// Restaura configurações padrão
+// Restaura configurações padrão - FUNÇÃO ATUALIZADA
 function resetSettings() {
   const confirmed = confirm('Deseja restaurar as configurações padrão?');
   if (!confirmed) return;
@@ -2229,6 +2457,10 @@ function resetSettings() {
     showCompleted: true
   };
 
+  // APLICAR RESET AO ELEMENTO HTML (RAIZ)
+  document.documentElement.style.fontFamily = 'Inter';
+  document.documentElement.style.fontSize = '16px';
+  
   loadSettings();
   saveData();
   applyLanguageToDOM();
@@ -2257,10 +2489,10 @@ function renderProfile() {
 }
 
 /*
-  15) SISTEMA DE PERÍODO PERSONALIZADO - VERSÃO CORRIGIDA
+   15) SISTEMA DE PERÍODO PERSONALIZADO
 */
 
-// Abrir modal de período personalizado - VERSÃO CORRIGIDA
+// Abrir modal de período personalizado
 function openCustomPeriodModal() {
   if (!DOM.modalCustomPeriod) return;
 
@@ -2272,7 +2504,7 @@ function openCustomPeriodModal() {
   if (DOM.recurringEndDate) DOM.recurringEndDate.min = today;
 
   // Limpar formulário
-  DOM.customPeriodForm.reset();
+  if (DOM.customPeriodForm) DOM.customPeriodForm.reset();
 
   // Inicializar valores padrão
   if (DOM.customStartDate) DOM.customStartDate.value = today;
@@ -2282,7 +2514,7 @@ function openCustomPeriodModal() {
   // Inicializar dias da semana (segunda a sexta selecionados por padrão)
   const weekdayCheckboxes = document.querySelectorAll('.weekday-option input[type="checkbox"]');
   weekdayCheckboxes.forEach((checkbox, index) => {
-    checkbox.checked = index >= 1 && index <= 5; // Segunda a sexta
+    checkbox.checked = index >= 1 && index <= 5;
   });
 
   // Mostrar seção padrão (intervalo)
@@ -2293,7 +2525,10 @@ function openCustomPeriodModal() {
   toggleRecurringEndFields();
 
   // Abrir modal
-  if (DOM.modalCustomPeriod.showModal) DOM.modalCustomPeriod.showModal();
+  if (DOM.modalCustomPeriod.showModal) {
+    DOM.modalCustomPeriod.showModal();
+  }
+  
   if (DOM.customTitle) DOM.customTitle.focus();
 }
 
@@ -2301,26 +2536,21 @@ function openCustomPeriodModal() {
 function closeCustomPeriodModal() {
   if (!DOM.modalCustomPeriod) return;
 
-  // Limpar formulário
   if (DOM.customPeriodForm) DOM.customPeriodForm.reset();
 
-  // Limpar campos de datas específicas
   if (DOM.specificDatesContainer) {
     DOM.specificDatesContainer.innerHTML = '';
   }
 
-  // Fechar modal
   if (DOM.modalCustomPeriod.close) DOM.modalCustomPeriod.close();
 }
 
-// Mostrar seção específica baseada no tipo de período selecionado - VERSÃO CORRIGIDA
+// Mostrar seção específica baseada no tipo de período selecionado
 function showPeriodSection(type) {
-  // Esconder todas as seções
   if (DOM.periodRangeSection) DOM.periodRangeSection.style.display = 'none';
   if (DOM.periodSpecificSection) DOM.periodSpecificSection.style.display = 'none';
   if (DOM.periodRecurringSection) DOM.periodRecurringSection.style.display = 'none';
 
-  // Mostrar a seção selecionada
   switch (type) {
     case 'range':
       if (DOM.periodRangeSection) DOM.periodRangeSection.style.display = 'block';
@@ -2328,7 +2558,6 @@ function showPeriodSection(type) {
     case 'specific':
       if (DOM.periodSpecificSection) {
         DOM.periodSpecificSection.style.display = 'block';
-        // Garantir que há pelo menos um campo de data
         if (!DOM.specificDatesContainer.querySelector('.specific-date')) {
           addSpecificDateField();
         }
@@ -2337,7 +2566,6 @@ function showPeriodSection(type) {
     case 'recurring':
       if (DOM.periodRecurringSection) {
         DOM.periodRecurringSection.style.display = 'block';
-        // Definir data mínima para hoje
         const today = new Date().toISOString().split('T')[0];
         if (DOM.recurringStartDate) DOM.recurringStartDate.min = today;
         if (DOM.recurringEndDate) DOM.recurringEndDate.min = today;
@@ -2346,7 +2574,7 @@ function showPeriodSection(type) {
   }
 }
 
-// Adicionar campo de data para dias específicos - VERSÃO CORRIGIDA
+// Adicionar campo de data para dias específicos
 function addSpecificDateField() {
   if (!DOM.specificDatesContainer) return;
 
@@ -2358,7 +2586,6 @@ function addSpecificDateField() {
   dateInput.className = 'specific-date';
   dateInput.required = true;
   
-  // Definir data mínima como hoje
   const today = new Date().toISOString().split('T')[0];
   dateInput.min = today;
 
@@ -2370,7 +2597,6 @@ function addSpecificDateField() {
 
   removeBtn.addEventListener('click', function () {
     dateRow.remove();
-    // Se não houver mais campos, adicionar um vazio
     if (DOM.specificDatesContainer.children.length === 0) {
       addSpecificDateField();
     }
@@ -2380,11 +2606,10 @@ function addSpecificDateField() {
   dateRow.appendChild(removeBtn);
   DOM.specificDatesContainer.appendChild(dateRow);
   
-  // Focar no novo campo
   setTimeout(() => dateInput.focus(), 100);
 }
 
-// Atualizar unidade de intervalo baseada na frequência - VERSÃO CORRIGIDA
+// Atualizar unidade de intervalo baseada na frequência
 function updateIntervalUnit() {
   if (!DOM.recurringFrequency || !DOM.intervalUnit) return;
 
@@ -2404,7 +2629,7 @@ function updateIntervalUnit() {
   DOM.intervalUnit.textContent = unit;
 }
 
-// Habilitar/desabilitar campos de término baseado na seleção - VERSÃO CORRIGIDA
+// Habilitar/desabilitar campos de término baseado na seleção
 function toggleRecurringEndFields() {
   const selectedRadio = document.querySelector('input[name="recurringEnd"]:checked');
   if (!selectedRadio) return;
@@ -2422,13 +2647,13 @@ function toggleRecurringEndFields() {
     DOM.recurringEndDate.disabled = selectedValue !== 'on';
     if (!DOM.recurringEndDate.value && selectedValue === 'on') {
       const today = new Date();
-      today.setMonth(today.getMonth() + 1); // 1 mês a partir de hoje
+      today.setMonth(today.getMonth() + 1);
       DOM.recurringEndDate.value = today.toISOString().split('T')[0];
     }
   }
 }
 
-// Gerar todas as datas para uma rotina baseada no tipo de período - VERSÃO CORRIGIDA
+// Gerar todas as datas para uma rotina baseada no tipo de período
 function generateRoutineDates(periodType, formData) {
   let dates = [];
 
@@ -2448,7 +2673,7 @@ function generateRoutineDates(periodType, formData) {
 
         const selectedDays = formData.selectedDays && formData.selectedDays.length > 0 
           ? formData.selectedDays 
-          : [1, 2, 3, 4, 5]; // Padrão: dias de semana
+          : [1, 2, 3, 4, 5];
 
         let current = new Date(start);
         while (current <= end) {
@@ -2457,7 +2682,6 @@ function generateRoutineDates(periodType, formData) {
           }
           current.setDate(current.getDate() + 1);
           
-          // Limite de segurança
           if (dates.length > 365) break;
         }
         break;
@@ -2476,7 +2700,7 @@ function generateRoutineDates(periodType, formData) {
             }
             return formatDateForInput(dateObj);
           })
-          .filter((date, index, self) => self.indexOf(date) === index); // Remover duplicatas
+          .filter((date, index, self) => self.indexOf(date) === index);
         break;
 
       case 'recurring':
@@ -2495,7 +2719,7 @@ function generateRoutineDates(periodType, formData) {
   return dates;
 }
 
-// Gerar datas para rotinas recorrentes - VERSÃO CORRIGIDA
+// Gerar datas para rotinas recorrentes
 function generateRecurringDates(formData) {
   const dates = [];
   
@@ -2519,13 +2743,11 @@ function generateRecurringDates(formData) {
     ? new Date(formData.endDate + 'T00:00:00') 
     : null;
 
-  // Validar datas
   if (endDate && startDate > endDate) {
     throw new Error('Data de início não pode ser posterior à data de término');
   }
 
-  while (occurrenceCount < 365) { // Limite de segurança
-    // Verificar condições de término
+  while (occurrenceCount < 365) {
     if (formData.endType === 'after' && occurrenceCount >= maxOccurrences) {
       break;
     }
@@ -2536,7 +2758,6 @@ function generateRecurringDates(formData) {
     dates.push(formatDateForInput(currentDate));
     occurrenceCount++;
 
-    // Avançar para a próxima data baseada na frequência
     switch (frequency) {
       case 'daily':
         currentDate.setDate(currentDate.getDate() + interval);
@@ -2546,7 +2767,6 @@ function generateRecurringDates(formData) {
         break;
       case 'monthly':
         currentDate.setMonth(currentDate.getMonth() + interval);
-        // Ajustar para o último dia do mês se necessário
         const nextMonth = new Date(currentDate);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         nextMonth.setDate(0);
@@ -2556,14 +2776,13 @@ function generateRecurringDates(formData) {
         break;
     }
 
-    // Parar se exceder um limite razoável
     if (occurrenceCount >= 365) break;
   }
 
   return dates;
 }
 
-// Adicionar múltiplas rotinas baseadas nas datas geradas - VERSÃO CORRIGIDA
+// Adicionar múltiplas rotinas baseadas nas datas geradas
 function addRoutinesWithCustomPeriod(formData) {
   try {
     const dates = generateRoutineDates(formData.periodType, formData);
@@ -2573,7 +2792,6 @@ function addRoutinesWithCustomPeriod(formData) {
       return;
     }
 
-    // Aviso para muitas rotinas
     if (dates.length > 50) {
       const confirmed = confirm(`Esta ação criará ${dates.length} rotinas. Isso pode afetar o desempenho. Deseja continuar?`);
       if (!confirmed) return;
@@ -2622,18 +2840,16 @@ function addRoutinesWithCustomPeriod(formData) {
   }
 }
 
-// Processar formulário de período personalizado - VERSÃO COMPLETAMENTE CORRIGIDA
+// Processar formulário de período personalizado
 function processCustomPeriodForm(e) {
   if (e && e.preventDefault) e.preventDefault();
 
-  // Verificar se é o botão cancelar
   const submitter = e.submitter;
   if (submitter && submitter.value === 'cancel') {
     closeCustomPeriodModal();
     return;
   }
 
-  // Coletar dados básicos do formulário
   const title = DOM.customTitle ? DOM.customTitle.value.trim() : '';
   const description = DOM.customDesc ? DOM.customDesc.value : '';
   const time = DOM.customTime ? DOM.customTime.value || undefined : undefined;
@@ -2645,7 +2861,6 @@ function processCustomPeriodForm(e) {
     return;
   }
 
-  // Determinar tipo de período selecionado
   const periodTypeRadio = document.querySelector('input[name="periodType"]:checked');
   if (!periodTypeRadio) {
     showToast('Selecione um tipo de período.', 'error');
@@ -2662,7 +2877,6 @@ function processCustomPeriodForm(e) {
     periodType
   };
 
-  // Coletar dados específicos do tipo de período
   try {
     switch (periodType) {
       case 'range':
@@ -2674,7 +2888,6 @@ function processCustomPeriodForm(e) {
           return;
         }
 
-        // Coletar dias da semana selecionados
         const selectedDays = [];
         document.querySelectorAll('.weekday-option input[type="checkbox"]:checked').forEach(cb => {
           selectedDays.push(parseInt(cb.value));
@@ -2745,10 +2958,7 @@ function processCustomPeriodForm(e) {
         break;
     }
 
-    // Criar as rotinas
     addRoutinesWithCustomPeriod(formData);
-
-    // Fechar modal apenas se não houver erros
     closeCustomPeriodModal();
 
   } catch (error) {
@@ -2758,7 +2968,7 @@ function processCustomPeriodForm(e) {
 }
 
 /*
-  16) SISTEMA DE NOTIFICAÇÕES
+   16) SISTEMA DE NOTIFICAÇÕES
 */
 
 // Configurar notificações
@@ -2772,7 +2982,6 @@ function setupNotifications() {
     return;
   }
 
-  // Verificar se já temos permissão
   if (Notification.permission === 'granted') {
     if (DOM.notificationsToggle) {
       DOM.notificationsToggle.checked = true;
@@ -2841,17 +3050,14 @@ function setupNotificationToggle() {
   if (DOM.notificationsToggle) {
     DOM.notificationsToggle.addEventListener('change', function() {
       if (this.checked) {
-        // Se está tentando ativar, solicitar permissão
         requestNotificationPermission().then(permissionGranted => {
           if (!permissionGranted) {
             this.checked = false;
           } else {
-            // Enviar notificação de teste
             setTimeout(sendTestNotification, 1000);
           }
         });
       }
-      // Se está desativando, não precisa fazer nada além de atualizar o estado
     });
   }
 }
@@ -2865,11 +3071,9 @@ function sendReminderNotification(task) {
   const now = new Date();
   const taskTime = task.time ? new Date(`${task.date}T${task.time}`) : new Date(`${task.date}T09:00:00`);
   
-  // Verificar se a tarefa é para hoje e está próxima do horário
   if (task.date === now.toISOString().split('T')[0]) {
     const timeDiff = taskTime.getTime() - now.getTime();
     
-    // Notificar se faltar 15 minutos ou menos, ou se já passou do horário
     if (timeDiff <= 15 * 60 * 1000 && timeDiff > -60 * 60 * 1000) {
       const notification = new Notification('Life Build', {
         body: `${t('notification.reminder')}"${task.title}" - ${task.time || t('filter.hoje')}`,
@@ -2887,7 +3091,96 @@ function sendReminderNotification(task) {
 }
 
 /*
-   17) EVENTOS GERAIS E LIGAÇÕES
+   17) SISTEMA DE TROCA DE FOTO DO PERFIL
+*/
+
+// Configurar evento para trocar foto do perfil (clique na foto)
+function setupProfilePhotoChange() {
+  if (DOM.profilePhoto && DOM.profilePhotoInput) {
+    DOM.profilePhoto.addEventListener('click', () => {
+      DOM.profilePhotoInput.click();
+    });
+    
+    DOM.profilePhotoInput.addEventListener('change', handleProfilePhotoChange);
+  }
+}
+
+// Configurar evento para o botão de alterar foto
+function setupPhotoChangeButton() {
+  if (DOM.changePhotoBtn && DOM.profilePhotoInput) {
+    DOM.changePhotoBtn.addEventListener('click', () => {
+      DOM.profilePhotoInput.click();
+    });
+  }
+}
+
+// Processar a troca da foto do perfil
+function handleProfilePhotoChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.startsWith('image/')) {
+    showToast('Por favor, selecione uma imagem válida.', 'error');
+    return;
+  }
+  
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('A imagem deve ter no máximo 5MB.', 'error');
+    return;
+  }
+  
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    updateProfilePhoto(e.target.result);
+  };
+  
+  reader.onerror = function() {
+    showToast('Erro ao carregar a imagem.', 'error');
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// Atualizar a foto do perfil no estado e na interface
+function updateProfilePhoto(imageData) {
+  if (!state.profile) state.profile = {};
+  state.profile.photo = imageData;
+  
+  const profilePhoto = document.getElementById('profilePhoto');
+  const topbarAvatar = document.querySelector('.topbar .avatar img');
+  
+  if (profilePhoto) {
+    profilePhoto.src = imageData;
+  }
+  
+  if (topbarAvatar) {
+    topbarAvatar.src = imageData;
+  }
+  
+  saveData();
+  
+  showToastTranslation('toast.saved', 'success');
+}
+
+// Carregar foto do perfil salva
+function loadProfilePhoto() {
+  if (state.profile && state.profile.photo) {
+    const profilePhoto = document.getElementById('profilePhoto');
+    const topbarAvatar = document.querySelector('.topbar .avatar img');
+    
+    if (profilePhoto) {
+      profilePhoto.src = state.profile.photo;
+    }
+    
+    if (topbarAvatar) {
+      topbarAvatar.src = state.profile.photo;
+    }
+  }
+}
+
+/*
+   18) EVENTOS GERAIS E LIGAÇÕES - COM CORREÇÕES DO SISTEMA DE FONTE
 */
 
 // Configura todos os listeners de UI (botões, formulários, links, etc.)
@@ -2896,7 +3189,7 @@ function setupEventListeners() {
   if (DOM.btnToggleSidebar) DOM.btnToggleSidebar.addEventListener('click', toggleSidebar);
 
   // Botão de adicionar rápida
-  if (DOM.btnQuickAdd && DOM.modalCustomPeriod) {
+  if (DOM.btnQuickAdd) {
     DOM.btnQuickAdd.addEventListener('click', openCustomPeriodModal);
   }
 
@@ -2917,16 +3210,43 @@ function setupEventListeners() {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const wasActive = link.classList.contains('is-active');
-        // limpa todos
+        
         DOM.filterLinks.forEach(l => l.classList.remove('is-active'));
-        // alterna
-        if (!wasActive) link.classList.add('is-active');
+        const allTags = document.querySelectorAll('.tag');
+        allTags.forEach(tag => tag.classList.remove('is-active'));
+        
+        if (!wasActive) {
+          link.classList.add('is-active');
+        }
+        
         render();
+        
+        if (!wasActive) {
+          const filter = link.dataset.filter;
+          const lang = getLang();
+          const filterNames = {
+            'pendentes': t('filter.pendentes'),
+            'concluidas': t('filter.concluidas'),
+            'alta': t('filter.alta'),
+            'media': t('filter.media'),
+            'baixa': t('filter.baixa'),
+            'semData': t('filter.semData')
+          };
+          
+          const filterMessages = {
+            'pt-BR': `Filtrado por: ${filterNames[filter]}`,
+            'en-US': `Filtered by: ${filterNames[filter]}`,
+            'es-ES': `Filtrado por: ${filterNames[filter]}`,
+            'fr-FR': `Filtré par: ${filterNames[filter]}`
+          };
+          
+          showToast(filterMessages[lang] || filterMessages['pt-BR'], 'info');
+        }
       });
     });
   }
 
-  // Modal adicionar tag - CORREÇÃO COMPLETA
+  // Modal adicionar tag
   if (DOM.btnAddTag) {
     DOM.btnAddTag.addEventListener('click', openAddTagModal);
   }
@@ -2936,7 +3256,6 @@ function setupEventListeners() {
   if (addTagForm) {
     addTagForm.addEventListener('submit', processAddTagForm);
 
-    // Botão cancelar no modal de etiqueta
     const cancelBtn = addTagForm.querySelector('button[value="cancel"]');
     if (cancelBtn) {
       cancelBtn.addEventListener('click', (e) => {
@@ -2982,7 +3301,6 @@ function setupEventListeners() {
   if (DOM.customPeriodForm) {
     DOM.customPeriodForm.addEventListener('submit', processCustomPeriodForm);
 
-    // Botão cancelar
     const cancelBtn = DOM.customPeriodForm.querySelector('button[value="cancel"]');
     if (cancelBtn) {
       cancelBtn.addEventListener('click', () => {
@@ -3028,17 +3346,19 @@ function setupEventListeners() {
     });
   }
 
-  // Controles de configuração em tempo real
+  // CONTROLES DE CONFIGURAÇÃO EM TEMPO REAL - ATUALIZADOS
   if (DOM.fontSize) {
     DOM.fontSize.addEventListener('input', (e) => {
-      document.body.style.fontSize = e.target.value + 'px';
+      // APLICAR AO ELEMENTO HTML (RAIZ) PARA AFETAR TODO O SITE
+      document.documentElement.style.fontSize = e.target.value + 'px';
       if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = e.target.value + 'px';
     });
   }
 
   if (DOM.fontFamily) {
     DOM.fontFamily.addEventListener('change', (e) => {
-      document.body.style.fontFamily = e.target.value;
+      // APLICAR AO ELEMENTO HTML (RAIZ) PARA AFETAR TODO O SITE
+      document.documentElement.style.fontFamily = e.target.value;
     });
   }
 
@@ -3083,11 +3403,11 @@ function setupEventListeners() {
   });
 }
 
-/*
-   18) FUNÇÕES AUXILIARES (UI/Helpers)
+/* 
+   19) FUNÇÕES AUXILIARES (UI/Helpers)
 */
 
-// Alterna a sidebar visível / escondida e persiste a preferência
+// Alterna la sidebar visível / escondida e persiste a preferência
 function toggleSidebar() {
   state.showSidebar = !state.showSidebar;
   if (DOM.app) DOM.app.setAttribute('data-layout', state.showSidebar ? 'with-sidebar' : 'without-sidebar');
@@ -3096,24 +3416,29 @@ function toggleSidebar() {
 
 // Muda a view principal (Hoje / Semana / Calendário / Todas / Config)
 function setCurrentView(view) {
-  // Ajusta estado
-  // normalize view to string and lower-case for safety
   const v = (view || 'hoje').toString();
   state.currentView = v;
 
-  // Atualiza classes ativas nos links do menu
+  // Atualizar atributo data-view no app
+  DOM.app.setAttribute('data-view', v);
+
   if (DOM.menuLinks && DOM.menuLinks.length) {
     DOM.menuLinks.forEach(link => {
-      // compare case-insensitive to avoid mismatch between html/data-view and state
       const linkView = (link.dataset.view || '').toString();
       link.classList.toggle('is-active', linkView.toLowerCase() === String(state.currentView).toLowerCase());
     });
   }
 
-  // Limpa filtros rápidos ao trocar de view
+  // Limpar filtros ativos ao mudar de view
   if (DOM.filterLinks && DOM.filterLinks.length) {
     DOM.filterLinks.forEach(l => l.classList.remove('is-active'));
   }
+
+  const allTags = document.querySelectorAll('.tag');
+  allTags.forEach(tag => tag.classList.remove('is-active'));
+
+  // Atualizar visibilidade dos filtros
+  updateFiltersVisibility();
 
   render();
 }
@@ -3126,13 +3451,31 @@ function updateClock() {
   if (DOM.nowTime) DOM.nowTime.textContent = now.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
 }
 
+// Atualiza indicadores visuais de filtros ativos
+function updateFilterIndicators() {
+  const activeFilter = document.querySelector('.menu-link[data-filter].is-active');
+  const activeTag = document.querySelector('.tag.is-active');
+  
+  if (activeFilter || activeTag) {
+    DOM.app.classList.add('has-active-filter');
+  } else {
+    DOM.app.classList.remove('has-active-filter');
+  }
+}
+
 /*
-   19) SISTEMA DE GRÁFICOS
+   20) SISTEMA DE GRÁFICOS
 */
 
 // Inicializar todos os gráficos
 function initCharts() {
-  console.log('Inicializando gráficos...');
+  console.log('Inicializando gráficos para view:', state.currentView);
+  
+  // Só inicializar gráficos se estiver na view correta
+  if (state.currentView !== 'graficos') {
+    console.log('Não é a view de gráficos, ignorando...');
+    return;
+  }
 
   if (!state.routines || state.routines.length === 0) {
     console.log('Nenhuma rotina encontrada para gráficos');
@@ -3141,17 +3484,20 @@ function initCharts() {
   }
 
   try {
-    renderWeeklyProgressChart();
-    renderTimeDistributionChart();
-    renderHabitsOverTimeChart();
-    console.log('Gráficos inicializados com sucesso!');
+    // Aguardar o DOM estar pronto
+    setTimeout(() => {
+      renderWeeklyProgressChart();
+      renderTimeDistributionChart();
+      renderHabitsOverTimeChart();
+      console.log('Gráficos inicializados com sucesso!');
+    }, 100);
   } catch (error) {
     console.error('Erro ao inicializar gráficos:', error);
     renderEmptyCharts();
   }
 }
 
-// Renderizar gráfico de progresso semanal - VERSÃO SIMPLIFICADA
+// Renderizar gráfico de progresso semanal
 function renderWeeklyProgressChart() {
   const ctx = document.getElementById('weeklyProgressChart');
   if (!ctx) {
@@ -3159,7 +3505,6 @@ function renderWeeklyProgressChart() {
     return;
   }
 
-  // Destruir gráfico anterior se existir
   if (ctx.chartInstance) {
     ctx.chartInstance.destroy();
   }
@@ -3190,14 +3535,13 @@ function renderWeeklyProgressChart() {
     }
   });
 
-  // Atualiza texto informativo
   const infoText = ctx.closest('.chart-container').querySelector('.info-text');
   if (infoText) {
     infoText.textContent = t('chart.infoWeekly');
   }
 }
 
-// Renderizar gráfico de distribuição de tempo - VERSÃO SIMPLIFICADA
+// Renderizar gráfico de distribuição de tempo
 function renderTimeDistributionChart() {
   const ctx = document.getElementById('timeDistributionChart');
   if (!ctx) return;
@@ -3224,14 +3568,13 @@ function renderTimeDistributionChart() {
     }
   });
 
-  // Atualiza texto informativo
   const infoText = ctx.closest('.chart-container').querySelector('.info-text');
   if (infoText) {
     infoText.textContent = t('chart.infoTime');
   }
 }
 
-// Renderizar gráfico de hábitos ao longo do tempo - VERSÃO SIMPLIFICADA
+// Renderizar gráfico de hábitos ao longo do tempo
 function renderHabitsOverTimeChart() {
   const ctx = document.getElementById('habitsOverTimeChart');
   if (!ctx) return;
@@ -3261,7 +3604,6 @@ function renderHabitsOverTimeChart() {
     }
   });
 
-  // Atualiza texto informativo
   const infoText = ctx.closest('.chart-container').querySelector('.info-text');
   if (infoText) {
     infoText.textContent = t('chart.infoHabits');
@@ -3284,7 +3626,6 @@ function renderEmptyCharts() {
 
       const lang = getLang();
 
-      // Criar gráfico vazio
       ctx.chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -3301,104 +3642,12 @@ function renderEmptyCharts() {
         }
       });
 
-      // Atualiza texto informativo
       const infoText = ctx.closest('.chart-container').querySelector('.info-text');
       if (infoText) {
         infoText.textContent = t('empty.addRoutines');
       }
     }
   });
-}
-
-/*
-   20) SISTEMA DE TROCA DE FOTO DO PERFIL
-*/
-
-// Configurar evento para trocar foto do perfil
-function setupProfilePhotoChange() {
-  const profilePhoto = document.querySelector('.profile-photo');
-  const profilePhotoInput = document.getElementById('profilePhotoInput');
-  
-  if (profilePhoto && profilePhotoInput) {
-    // Clicar na foto abre o seletor de arquivos
-    profilePhoto.addEventListener('click', () => {
-      profilePhotoInput.click();
-    });
-    
-    // Quando um arquivo é selecionado
-    profilePhotoInput.addEventListener('change', handleProfilePhotoChange);
-  }
-}
-
-// Processar a troca da foto do perfil
-function handleProfilePhotoChange(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  // Validar tipo de arquivo
-  if (!file.type.startsWith('image/')) {
-    showToast('Por favor, selecione uma imagem válida.', 'error');
-    return;
-  }
-  
-  // Validar tamanho do arquivo (máximo 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    showToast('A imagem deve ter no máximo 5MB.', 'error');
-    return;
-  }
-  
-  // Ler a imagem e atualizar o perfil
-  const reader = new FileReader();
-  
-  reader.onload = function(e) {
-    updateProfilePhoto(e.target.result);
-  };
-  
-  reader.onerror = function() {
-    showToast('Erro ao carregar a imagem.', 'error');
-  };
-  
-  reader.readAsDataURL(file);
-}
-
-// Atualizar a foto do perfil no estado e na interface
-function updateProfilePhoto(imageData) {
-  // Atualizar no estado
-  if (!state.profile) state.profile = {};
-  state.profile.photo = imageData;
-  
-  // Atualizar na interface
-  const profilePhoto = document.querySelector('.profile-photo');
-  const topbarAvatar = document.querySelector('.topbar .avatar img');
-  
-  if (profilePhoto) {
-    profilePhoto.src = imageData;
-  }
-  
-  if (topbarAvatar) {
-    topbarAvatar.src = imageData;
-  }
-  
-  // Salvar no localStorage
-  saveData();
-  
-  showToastTranslation('toast.saved', 'success');
-}
-
-// Carregar foto do perfil salva
-function loadProfilePhoto() {
-  if (state.profile && state.profile.photo) {
-    const profilePhoto = document.querySelector('.profile-photo');
-    const topbarAvatar = document.querySelector('.topbar .avatar img');
-    
-    if (profilePhoto) {
-      profilePhoto.src = state.profile.photo;
-    }
-    
-    if (topbarAvatar) {
-      topbarAvatar.src = state.profile.photo;
-    }
-  }
 }
 
 /*
