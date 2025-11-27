@@ -671,6 +671,12 @@ const I18N = {
     'es-ES': 'Evolución de Hábitos',
     'fr-FR': "Évolution des Habitudes"
   },
+  'chart.tagUsage': {
+    'pt-BR': 'Uso das Etiquetas',
+    'en-US': 'Tag Usage',
+    'es-ES': 'Uso de Etiquetas',
+    'fr-FR': 'Utilisation des Étiquettes'
+  },
   'chart.infoWeekly': {
     'pt-BR': 'Acompanhe sua produtividade ao longo da semana',
     'en-US': 'Track your productivity throughout the week',
@@ -688,6 +694,12 @@ const I18N = {
     'en-US': 'Monitor the consistency of your habits over time',
     'es-ES': 'Monitore la consistencia de sus hábitos a lo largo del tiempo',
     'fr-FR': 'Surveillez la cohérence de vos habitudes au fil du temps'
+  },
+  'chart.infoTagUsage': {
+    'pt-BR': 'Veja quantas rotinas utilizam cada etiqueta',
+    'en-US': 'See how many routines use each tag',
+    'es-ES': 'Vea cuántas rutinas utilizan cada etiqueta',
+    'fr-FR': 'Voyez combien de routines utilisent chaque étiquette'
   },
 
   // Modal nova etiqueta
@@ -1658,14 +1670,16 @@ function renderTags() {
         const li = document.createElement('li');
         const tagContainer = document.createElement('div');
         tagContainer.className = 'tag-container';
-        tagContainer.style.position = 'relative';
-        tagContainer.style.display = 'inline-block';
 
         const a = document.createElement('a');
         a.className = 'tag';
         a.href = '#';
         a.dataset.tag = tag.name;
-        a.textContent = `#${tag.name}`;
+        
+        // Texto da etiqueta
+        const tagText = document.createElement('span');
+        tagText.textContent = `#${tag.name}`;
+        a.appendChild(tagText);
         
         // Adicionar contador de uso
         const usageCount = countTagUsage(tag.name);
@@ -1685,9 +1699,9 @@ function renderTags() {
         // Aplicar cor da etiqueta
         a.style.borderColor = tag.color;
         a.style.color = tag.color;
-        a.style.backgroundColor = tag.color + '20';
+        a.style.backgroundColor = tag.color + '15'; // Mais transparente
 
-        // Botão de excluir
+        // Botão de excluir (agora com classe CSS para aparecer apenas no hover)
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'tag-delete';
         deleteBtn.innerHTML = '✕';
@@ -1712,8 +1726,8 @@ function renderTags() {
 
         // Efeitos de hover melhorados
         a.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-1px)';
-            this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
         });
 
         a.addEventListener('mouseleave', function() {
@@ -2116,7 +2130,7 @@ function createCalendarDay(day, isOtherMonth, isToday = false, fullDate = null, 
       cell.appendChild(ev);
     });
 
-    // Ao clicar no dia (fora de eventos), abre modal de período personalizado com a data preenchida
+    // Ao clicar no día (fora de eventos), abre modal de período personalizado com a data preenchida
     cell.addEventListener('click', (e) => {
       if (e.target && e.target.matches('.calendar-event')) return;
       if (!DOM.modalCustomPeriod) return;
@@ -3464,7 +3478,7 @@ function updateFilterIndicators() {
 }
 
 /*
-   20) SISTEMA DE GRÁFICOS - ATUALIZADO
+   20) SISTEMA DE GRÁFICOS - ATUALIZADO COM NOVO GRÁFICO DE USO DE ETIQUETAS
 */
 
 // Inicializar todos os gráficos
@@ -3489,12 +3503,55 @@ function initCharts() {
       renderWeeklyProgressChart();
       renderTimeDistributionChart();
       renderHabitsOverTimeChart();
+      renderTagUsageChart(); // NOVO GRÁFICO ADICIONADO AQUI
       console.log('Gráficos inicializados com sucesso!');
     }, 100);
   } catch (error) {
     console.error('Erro ao inicializar gráficos:', error);
     renderEmptyCharts();
   }
+}
+
+// Obter dados para o gráfico de uso de etiquetas
+function getTagUsageData() {
+    const tagStats = {};
+    
+    // Contar uso de cada etiqueta
+    state.routines.forEach(task => {
+        const tag = task.tag || 'sem-etiqueta';
+        if (!tagStats[tag]) {
+            tagStats[tag] = {
+                count: 0,
+                completed: 0,
+                color: getTagColor(tag)
+            };
+        }
+        tagStats[tag].count++;
+        if (task.completed) {
+            tagStats[tag].completed++;
+        }
+    });
+
+    // Ordenar por quantidade (mais usadas primeiro) e limitar a top 8
+    const sortedTags = Object.entries(tagStats)
+        .sort(([,a], [,b]) => b.count - a.count)
+        .slice(0, 8);
+
+    return {
+        labels: sortedTags.map(([tag]) => tag === 'sem-etiqueta' ? t('tag.geral') : `#${tag}`),
+        data: sortedTags.map(([,stats]) => stats.count),
+        completed: sortedTags.map(([,stats]) => stats.completed),
+        colors: sortedTags.map(([,stats]) => stats.color),
+        rawTags: sortedTags.map(([tag]) => tag)
+    };
+}
+
+// Função auxiliar para obter cor da etiqueta
+function getTagColor(tagName) {
+    if (tagName === 'sem-etiqueta') return '#9ca3af'; // Cinza para sem etiqueta
+    
+    const tagInfo = state.tags.find(t => t.name === tagName);
+    return tagInfo ? tagInfo.color : '#4f46e5'; // Cor padrão
 }
 
 // Obter dados reais para o gráfico de progresso semanal
@@ -3813,12 +3870,152 @@ function renderHabitsOverTimeChart() {
   }
 }
 
+// Renderizar gráfico de uso de etiquetas
+function renderTagUsageChart() {
+    const ctx = document.getElementById('tagUsageChart');
+    if (!ctx) {
+        console.log('Elemento tagUsageChart não encontrado');
+        return;
+    }
+
+    // Destruir instância anterior se existir
+    if (ctx.chartInstance) {
+        ctx.chartInstance.destroy();
+    }
+
+    const tagUsageData = getTagUsageData();
+    const lang = getLang();
+
+    ctx.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: tagUsageData.labels,
+            datasets: [{
+                label: 'Total de Rotinas',
+                data: tagUsageData.data,
+                backgroundColor: tagUsageData.colors,
+                borderColor: tagUsageData.colors.map(color => color.replace('0.8', '1')),
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false,
+            }, {
+                label: 'Concluídas',
+                data: tagUsageData.completed,
+                backgroundColor: tagUsageData.colors.map(color => color + '80'), // Mais transparente
+                borderColor: tagUsageData.colors,
+                borderWidth: 1,
+                borderRadius: 4,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = context.parsed.y;
+                            const total = context.dataset.label === 'Total de Rotinas' 
+                                ? tagUsageData.data[context.dataIndex]
+                                : tagUsageData.completed[context.dataIndex];
+                            
+                            if (context.dataset.label === 'Concluídas') {
+                                const totalRoutines = tagUsageData.data[context.dataIndex];
+                                const percentage = totalRoutines > 0 
+                                    ? Math.round((value / totalRoutines) * 100) 
+                                    : 0;
+                                return `${label}: ${value} de ${totalRoutines} (${percentage}%)`;
+                            }
+                            return `${label}: ${value} rotinas`;
+                        },
+                        afterLabel: function(context) {
+                            if (context.datasetIndex === 0) {
+                                const tagName = tagUsageData.rawTags[context.dataIndex];
+                                if (tagName !== 'sem-etiqueta') {
+                                    return `Clique para filtrar por #${tagName}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Rotinas'
+                    },
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Etiquetas'
+                    }
+                }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const elementIndex = elements[0].index;
+                    const tagName = tagUsageData.rawTags[elementIndex];
+                    
+                    if (tagName !== 'sem-etiqueta') {
+                        // Filtrar por esta etiqueta
+                        filterByTag(tagName);
+                        // Mudar para view "Todas as Rotinas" para ver o filtro aplicado
+                        setCurrentView('todasRotinas');
+                        
+                        const lang = getLang();
+                        const filterMessages = {
+                            'pt-BR': `Filtrado por #${tagName}`,
+                            'en-US': `Filtered by #${tagName}`,
+                            'es-ES': `Filtrado por #${tagName}`,
+                            'fr-FR': `Filtré par #${tagName}`
+                        };
+                        
+                        showToast(filterMessages[lang] || filterMessages['pt-BR'], 'info');
+                    }
+                }
+            }
+        }
+    });
+
+    // Adicionar interatividade ao passar o mouse
+    ctx.addEventListener('mousemove', function(event) {
+        const points = ctx.chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+        
+        if (points.length > 0) {
+            ctx.style.cursor = 'pointer';
+        } else {
+            ctx.style.cursor = 'default';
+        }
+    });
+
+    const infoText = ctx.closest('.chart-container').querySelector('.info-text');
+    if (infoText) {
+        infoText.textContent = t('chart.infoTagUsage');
+    }
+}
+
 // Renderizar gráficos vazios quando não há dados
 function renderEmptyCharts() {
   const chartIds = [
     'weeklyProgressChart',
     'timeDistributionChart',
-    'habitsOverTimeChart'
+    'habitsOverTimeChart',
+    'tagUsageChart' // NOVO GRÁFICO ADICIONADO AQUI
   ];
 
   chartIds.forEach(chartId => {
