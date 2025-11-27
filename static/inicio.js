@@ -3464,7 +3464,7 @@ function updateFilterIndicators() {
 }
 
 /*
-   20) SISTEMA DE GRÁFICOS
+   20) SISTEMA DE GRÁFICOS - ATUALIZADO
 */
 
 // Inicializar todos os gráficos
@@ -3497,7 +3497,114 @@ function initCharts() {
   }
 }
 
-// Renderizar gráfico de progresso semanal
+// Obter dados reais para o gráfico de progresso semanal
+function getWeeklyProgressData() {
+  const last7Days = [];
+  const today = new Date();
+  
+  // Gerar array dos últimos 7 dias
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    last7Days.push(date.toISOString().split('T')[0]);
+  }
+
+  // Contar tarefas concluídas por dia
+  const completedByDay = last7Days.map(date => {
+    return state.routines.filter(task => 
+      task.date === date && task.completed
+    ).length;
+  });
+
+  return completedByDay;
+}
+
+// Obter dados reais para distribuição de tempo por etiquetas
+function getTimeDistributionData() {
+  const tagStats = {};
+  
+  state.routines.forEach(task => {
+    const tag = task.tag || 'sem-etiqueta';
+    if (!tagStats[tag]) {
+      tagStats[tag] = {
+        count: 0,
+        completed: 0
+      };
+    }
+    tagStats[tag].count++;
+    if (task.completed) {
+      tagStats[tag].completed++;
+    }
+  });
+
+  // Ordenar por quantidade (mais frequentes primeiro)
+  const sortedTags = Object.entries(tagStats)
+    .sort(([,a], [,b]) => b.count - a.count)
+    .slice(0, 5); // Top 5 etiquetas
+
+  return {
+    labels: sortedTags.map(([tag]) => tag === 'sem-etiqueta' ? t('tag.geral') : `#${tag}`),
+    data: sortedTags.map(([,stats]) => stats.count),
+    completed: sortedTags.map(([,stats]) => stats.completed)
+  };
+}
+
+// Obter dados reais para evolução de hábitos
+function getHabitsOverTimeData() {
+  const last30Days = [];
+  const today = new Date();
+  
+  // Gerar array dos últimos 30 dias
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    last30Days.push(date.toISOString().split('T')[0]);
+  }
+
+  // Calcular taxa de conclusão diária (média móvel de 7 dias)
+  const completionRates = [];
+  
+  for (let i = 0; i < last30Days.length; i++) {
+    const startIdx = Math.max(0, i - 6);
+    const endIdx = i;
+    const periodDays = last30Days.slice(startIdx, endIdx + 1);
+    
+    let totalTasks = 0;
+    let completedTasks = 0;
+    
+    periodDays.forEach(date => {
+      const dayTasks = state.routines.filter(task => task.date === date);
+      totalTasks += dayTasks.length;
+      completedTasks += dayTasks.filter(task => task.completed).length;
+    });
+    
+    const rate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    completionRates.push(Math.round(rate));
+  }
+
+  return {
+    labels: last30Days.map(date => {
+      const d = new Date(date);
+      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }),
+    data: completionRates
+  };
+}
+
+// Obter cores para as etiquetas
+function getTagColors(tags) {
+  const defaultColors = ['#ff5454', '#4f46e5', '#10b981', '#f59e0b', '#8b5cf6'];
+  const tagColors = {};
+  
+  tags.forEach((tag, index) => {
+    const tagInfo = state.tags.find(t => t.name === tag.replace('#', ''));
+    tagColors[tag] = tagInfo ? tagInfo.color : defaultColors[index % defaultColors.length];
+  });
+  
+  return tagColors;
+}
+
+// Renderizar gráfico de progresso semanal ATUALIZADO
 function renderWeeklyProgressChart() {
   const ctx = document.getElementById('weeklyProgressChart');
   if (!ctx) {
@@ -3505,11 +3612,12 @@ function renderWeeklyProgressChart() {
     return;
   }
 
+  // Destruir instância anterior se existir
   if (ctx.chartInstance) {
     ctx.chartInstance.destroy();
   }
 
-  const weeklyData = [5, 8, 6, 9, 7, 4, 3];
+  const weeklyData = getWeeklyProgressData();
   const lang = getLang();
 
   ctx.chartInstance = new Chart(ctx, {
@@ -3521,15 +3629,42 @@ function renderWeeklyProgressChart() {
         data: weeklyData,
         backgroundColor: '#ff5454',
         borderColor: '#ff2c2c',
-        borderWidth: 1
+        borderWidth: 1,
+        borderRadius: 4,
+        borderSkipped: false,
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.parsed.y} tarefas concluídas`;
+            }
+          }
+        }
+      },
       scales: {
         y: {
-          beginAtZero: true
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Tarefas Concluídas'
+          },
+          ticks: {
+            stepSize: 1
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Dias da Semana'
+          }
         }
       }
     }
@@ -3541,7 +3676,7 @@ function renderWeeklyProgressChart() {
   }
 }
 
-// Renderizar gráfico de distribuição de tempo
+// Renderizar gráfico de distribuição de tempo ATUALIZADO
 function renderTimeDistributionChart() {
   const ctx = document.getElementById('timeDistributionChart');
   if (!ctx) return;
@@ -3550,21 +3685,45 @@ function renderTimeDistributionChart() {
     ctx.chartInstance.destroy();
   }
 
+  const distributionData = getTimeDistributionData();
   const lang = getLang();
+  const tagColors = getTagColors(distributionData.labels);
 
   ctx.chartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: [t('tag.trabalho'), t('tag.saude'), t('tag.estudos'), t('tag.pessoal')],
+      labels: distributionData.labels,
       datasets: [{
-        data: [30, 20, 25, 25],
-        backgroundColor: ['#ff5454', '#4f46e5', '#10b981', '#f59e0b'],
-        borderWidth: 2
+        data: distributionData.data,
+        backgroundColor: distributionData.labels.map(tag => tagColors[tag]),
+        borderWidth: 2,
+        borderColor: '#ffffff'
       }]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            padding: 15
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              return `${label}: ${value} tarefas (${percentage}%)`;
+            }
+          }
+        }
+      },
+      cutout: '60%'
     }
   });
 
@@ -3574,7 +3733,7 @@ function renderTimeDistributionChart() {
   }
 }
 
-// Renderizar gráfico de hábitos ao longo do tempo
+// Renderizar gráfico de hábitos ao longo do tempo ATUALIZADO
 function renderHabitsOverTimeChart() {
   const ctx = document.getElementById('habitsOverTimeChart');
   if (!ctx) return;
@@ -3583,24 +3742,68 @@ function renderHabitsOverTimeChart() {
     ctx.chartInstance.destroy();
   }
 
+  const habitsData = getHabitsOverTimeData();
   const lang = getLang();
 
   ctx.chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: ['01/03', '02/03', '03/03', '04/03', '05/03', '06/03', '07/03'],
+      labels: habitsData.labels,
       datasets: [{
-        label: t('chart.habitsOverTime'),
-        data: [3, 5, 2, 6, 4, 7, 8],
+        label: 'Taxa de Conclusão (%)',
+        data: habitsData.data,
         borderColor: '#ff5454',
         backgroundColor: 'rgba(255, 84, 84, 0.1)',
-        borderWidth: 2,
-        fill: true
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#ff5454',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
       }]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `Taxa de conclusão: ${context.parsed.y}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Taxa de Conclusão (%)'
+          },
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Data'
+          },
+          ticks: {
+            maxTicksLimit: 10,
+            callback: function(value, index) {
+              // Mostrar apenas alguns rótulos para não sobrecarregar
+              return index % 3 === 0 ? this.getLabelForValue(value) : '';
+            }
+          }
+        }
+      }
     }
   });
 
@@ -3610,6 +3813,7 @@ function renderHabitsOverTimeChart() {
   }
 }
 
+// Renderizar gráficos vazios quando não há dados
 function renderEmptyCharts() {
   const chartIds = [
     'weeklyProgressChart',
@@ -3638,7 +3842,15 @@ function renderEmptyCharts() {
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, display: false },
+            x: { display: false }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
         }
       });
 
@@ -3649,6 +3861,20 @@ function renderEmptyCharts() {
     }
   });
 }
+
+// Atualizar gráficos quando os dados mudarem
+function updateCharts() {
+  if (state.currentView === 'graficos') {
+    initCharts();
+  }
+}
+
+// Modificar a função saveData para atualizar gráficos quando necessário
+const originalSaveData = saveData;
+saveData = function() {
+  originalSaveData();
+  updateCharts();
+};
 
 /*
    21) INICIALIZAÇÃO DA APLICAÇÃO
