@@ -3,8 +3,8 @@ Somos o seu site de rotinas, a ferramenta definitiva para organizar, monitorar e
 
 Para utilizar o site de maneira segura e funcional, utilize os seguintes códigos:
 
-pip install Flask
 # Instala o Flask
+pip install Flask
 
-pip install Flask-SQLAlchemy
 # Instala o Flask-SQL para o banco de dados
+pip install Flask-SQLAlchemy
