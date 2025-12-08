@@ -1,0 +1,2303 @@
+/*
+   LIGHT MODE (Default)
+*/
+:root {
+    /* Cores Principais */
+    --color-primary: #ff5454;
+    /* Vermelho/Carmesim */
+    --color-primary-dark: #ff2c2c;
+
+    /* Texto */
+    --color-text-default: #1f2937;
+    /* Gray 800 */
+    --color-text-secondary: #6b7280;
+    /* Gray 500 */
+    --color-text-light: #9ca3af;
+    /* Gray 400 - para texto mais claro */
+
+    /* Fundo */
+    --color-bg: #ffffff;
+    /* Branco puro */
+    --color-bg-alt: #f9fafb;
+    /* Gray 50 */
+    --color-sidebar-bg: #f3f4f6;
+    /* Gray 100 */
+
+    /* Bordas e Divisores */
+    --color-border: #e5e7eb;
+    /* Gray 200 */
+
+    /* Prioridades / Status */
+    --color-priority-high: #dc2626;
+    /* Red 600 */
+    --color-priority-medium: #d97706;
+    /* Amber 600 */
+    --color-priority-low: #059669;
+    /* Emerald 600 */
+    --color-danger: #dc2626;
+
+    /* Layout */
+    --sidebar-width: 250px;
+    --header-height: 60px;
+
+    /* Sombras */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/*
+   DARK MODE
+*/
+.app[data-theme="dark"] {
+    /* Cores Principais */
+    --color-primary: #ff5454;
+    --color-primary-dark: #ff5454;
+
+    /* Texto */
+    --color-text-default: #ffffff;
+    /* Gray 100 */
+    --color-text-secondary: #d1d5db;
+    /* Gray 300 */
+    --color-text-light: #9ca3af;
+    /* Gray 400 */
+
+    /* Fundo */
+    --color-bg: #111827;
+    /* Gray 900 */
+    --color-bg-alt: #1f2937;
+    /* Gray 800 */
+    --color-sidebar-bg: #374151;
+    /* Gray 700 */
+
+    /* Bordas e Divisores */
+    --color-border: #4b5563;
+    /* Gray 600 */
+
+    /* Prioridades / Status */
+    --color-priority-high: #ef4444;
+    /* Red 500 */
+    --color-priority-medium: #f59e0b;
+    /* Yellow 500 */
+    --color-priority-low: #10b981;
+    /* Emerald 500 */
+    --color-danger: #ef4444;
+}
+
+/* Estilos para indicadores de filtro ativo */
+.app.has-active-filter .content-header::before {
+    content: "Filtro Ativo";
+    display: inline-block;
+    background-color: var(--color-primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+/* Estilo para etiquetas ativas */
+.tag.is-active {
+    font-weight: 600;
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* Botão limpar filtros (opcional) */
+.btn.clear-filters {
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    margin-left: 12px;
+}
+
+.btn.clear-filters:hover {
+    background-color: var(--color-border);
+    color: var(--color-text-default);
+}
+
+/* CORREÇÃO: Regra específica para dark mode movida para fora do seletor principal */
+.app[data-theme="dark"] .calendar-day.today {
+    background-color: #111827;
+    color: white;
+}
+
+/* Base Reset e Tipografia */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: transparent;
+    color: var(--color-text-default);
+    line-height: 1.5;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.app {
+    background-color: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+/*  
+                   LAYOUT PRINCIPAL: .app, .topbar, .sidebar, .layout, .content
+*/
+
+/* Barra Superior (Top Bar) */
+.topbar {
+    display: flex;
+    align-items: center;
+    height: var(--header-height);
+    padding: 0 16px;
+    background-color: var(--color-bg-alt);
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+}
+
+.brand-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ff5454;
+    margin-left: 8px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ff5454;
+    margin-left: 8px;
+}
+
+.brand-mark {
+    font-size: 1.5rem;
+    margin-right: 6px;
+    color: #ff5454;
+}
+
+.icon {
+    font-size: 1.25rem;
+    color: #ffffff;
+    cursor: pointer;
+    width: 80px;
+    height: 30px;
+    background-color: #ff5454;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(255, 84, 84, 0.3);
+}
+
+.icon:hover {
+    background-color: #e04a4a;
+    box-shadow: 0 4px 8px rgba(255, 84, 84, 0.4);
+    transform: translateY(-2px);
+}
+
+.icon:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(255, 84, 84, 0.3);
+}
+
+.spacer {
+    flex-grow: 1;
+}
+
+.now {
+    margin-right: 16px;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.now .time {
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-primary);
+    cursor: pointer;
+}
+
+/* Layout principal (Sidebar + Content) */
+.layout {
+    display: flex;
+    flex-grow: 1;
+    position: relative;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 259px;
+    min-width: var(--sidebar-width);
+    background-color: var(--color-sidebar-bg);
+    border-right: 1px solid var(--color-border);
+    padding: 16px;
+
+    overflow-y: auto;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+    flex-shrink: 0;
+}
+
+/* Conteúdo Principal */
+.content {
+    flex-grow: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-header {
+    margin-bottom: 24px;
+}
+
+.view-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--color-text-default);
+}
+
+/* Layout com Sidebar Fechada */
+.app[data-layout="without-sidebar"] .sidebar {
+    transform: translateX(-100%);
+    width: 0;
+    min-width: 0;
+    padding: 16px 0;
+}
+
+.app[data-layout="without-sidebar"] .content {
+    margin-left: 0;
+}
+
+.footer {
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-text-default);
+    border-top: 1px solid var(--color-border);
+}
+
+/* 
+                        COMPONENTES GERAIS: Botões, Menu, Fields
+*/
+
+/* Estilo do botão */
+#uploadButton {
+    background-color: #4CAF50;
+    /* Verde bonito */
+    color: white;
+    /* Texto branco */
+    border: none;
+    /* Sem borda */
+    padding: 10px 20px;
+    /* Espaçamento interno */
+    font-size: 16px;
+    /* Tamanho da fonte */
+    border-radius: 8px;
+    /* Cantos arredondados */
+    cursor: pointer;
+    /* Mãozinha ao passar o mouse */
+    transition: background-color 0.3s ease;
+    /* Efeito suave */
+}
+
+#uploadButton:hover {
+    background-color: #45a049;
+    /* Muda a cor ao passar o mouse */
+}
+
+/* Botões */
+.btn,
+.btn-primary {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 0.875rem;
+}
+
+.btn:hover,
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn.ghost {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    padding: 7px 15px;
+}
+
+.btn.ghost:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn.icon.only {
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn.icon.only:hover {
+    background-color: var(--color-primary-dark);
+    color: white;
+    box-shadow: none;
+    border-radius: 8px;
+}
+
+.btn.small {
+    padding: 6px 17px;
+    font-size: 0.8rem;
+}
+
+.btn.danger {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+.btn.danger.ghost {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+    background-color: transparent;
+}
+
+.btn.danger.ghost:hover {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+/* Menu de Navegação */
+.section {
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu-link {
+    display: block;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: var(--color-text-default);
+    transition: background-color 0.2s, color 0.2s;
+    font-size: 1rem;
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.menu-link:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.menu-link.is-active {
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+}
+
+/* Logo */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ff5454;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/*  
+       +__________________Etiquetas ___________________+
+*/
+.tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 4px;
+    margin-bottom: 12px;
+}
+
+.tag {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    transition: opacity 0.2s;
+}
+
+.tag:hover {
+    opacity: 0.8;
+}
+
+/* Formulários e Campos */
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.field span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-default);
+    margin-bottom: 4px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: var(--color-bg-alt);
+    color: var(--color-text-default);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+    outline: none;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.grid {
+    display: grid;
+    gap: 16px;
+}
+
+.grid.two {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* 
+                    ESTILOS PARA PERÍODO PERSONALIZADO
+*/
+
+.period-type-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.period-type-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.period-type-option:hover {
+    background-color: var(--color-sidebar-bg);
+}
+
+.period-type-option input[type="radio"]:checked+span {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.period-section {
+    margin-top: 16px;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background-color: var(--color-sidebar-bg);
+}
+
+.weekday-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.weekday-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.weekday-option:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.weekday-option input[type="checkbox"]:checked+span {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.date-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+.date-input-row input {
+    flex-grow: 1;
+}
+
+.remove-date {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+#recurringIntervalField {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#recurringIntervalField input {
+    width: 60px;
+}
+
+#recurringEndOptions label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+#recurringEndOptions input[type="number"],
+#recurringEndOptions input[type="date"] {
+    margin-left: 8px;
+    padding: 4px;
+}
+
+/* Indicador visual para rotinas com múltiplas datas */
+.task.has-multiple-dates::after {
+    content: "📅";
+    margin-left: 8px;
+    font-size: 0.8rem;
+}
+
+.calendar-event.has-multiple-dates::after {
+    content: " 📅";
+    font-size: 0.7rem;
+}
+
+/* 
+                 PAINEL DE DETALHES (ASIDE.DETAILS)
+*/
+.details {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100%;
+    background-color: var(--color-bg-alt);
+    border-left: 1px solid var(--color-border);
+    box-shadow: -8px 0 16px rgba(0, 0, 0, 0.1);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.details.is-open {
+    transform: translateX(0);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.details-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.details-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.details-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.details-form .actions {
+    display: flex;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 20px;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--color-bg-alt);
+}
+
+/*
+                     CONFIGURAÇÕES
+*/
+
+.config-body {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.profile-container {
+    background-color: var(--color-bg-alt);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.profile-header {
+    text-align: center;
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.profile-banner {
+    height: 120px;
+    background-color: var(--color-primary);
+    border-radius: 8px 8px 0 0;
+    margin: -20px -20px 20px -20px;
+}
+
+.profile-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid var(--color-bg);
+    margin-top: -50px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.profile-photo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Indicador visual de que a foto é editável */
+.profile-photo::after {
+    content: '📷';
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.profile-photo:hover::after {
+    opacity: 1;
+}
+
+.profile-info {
+    margin-top: 16px;
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.info-item label {
+    font-weight: 600;
+    color: var(--color-text-default);
+}
+
+.info-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.edit-btn,
+.link {
+    color: var(--color-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+}
+
+.config-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--color-text-default);
+}
+
+/* ====================
+   ITENS DE CONFIGURAÇÃO 
+   ==================== */
+
+.config-option,
+.config-item {
+    background-color: var(--color-bg-alt);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.config-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
+}
+
+.config-option label,
+.config-item label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-weight: 500;
+    color: var(--color-text-default);
+    margin-right: 15px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Melhorias para os selects e inputs nas configurações */
+.config-item select,
+.config-item input[type="range"] {
+    min-width: 200px;
+    border-radius: 8px;
+    border: 2px solid var(--color-border);
+    padding: 10px;
+    background-color: var(--color-bg);
+    color: var(--color-text-default);
+    transition: all 0.3s ease;
+}
+
+.config-item select:focus,
+.config-item input[type="range"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 84, 84, 0.1);
+}
+
+/* Tamanho específico para o range */
+.config-item input[type="range"] {
+    width: 200px;
+    height: 8px;
+    background: linear-gradient(to right, var(--color-border), var(--color-primary));
+    border-radius: 4px;
+    border: none;
+    padding: 0;
+}
+
+.config-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    border: 3px solid var(--color-bg);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.config-item input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Valor do tamanho da fonte */
+#fontSizeValue {
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-left: 12px;
+    font-size: 1.1rem;
+    min-width: 40px;
+    text-align: center;
+    background: var(--color-bg);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 2px solid var(--color-border);
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 150px;
+    height: 34px;
+    margin-left: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 305px;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-border);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--color-primary);
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}
+
+/* ====================
+   BOTÕES DE CONFIGURAÇÕES 
+   ==================== */
+
+.form-actions,
+.config-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border);
+}
+
+.config-buttons .btn {
+    min-width: 180px;
+    height: 48px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+
+/* Botão primário (Salvar) */
+.config-buttons .btn.primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 84, 84, 0.3);
+    border: none;
+}
+
+.config-buttons .btn.primary::before {
+    font-size: 1.1rem;
+}
+
+.config-buttons .btn.primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 84, 84, 0.4);
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, #ff2c2c 100%);
+}
+
+.config-buttons .btn.primary:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 84, 84, 0.3);
+}
+
+/* Botão secundário (Restaurar) */
+.config-buttons .btn.secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 4px 12px rgba(255, 84, 84, 0.1);
+}
+
+.config-buttons .btn.secondary::before {
+    font-size: 1.1rem;
+}
+
+.config-buttons .btn.secondary:hover {
+    background-color: var(--color-primary);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 84, 84, 0.2);
+}
+
+.config-buttons .btn.secondary:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 84, 84, 0.1);
+}
+
+/* Efeito de onda nos botões */
+.config-buttons .btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%);
+    transform-origin: 50% 50%;
+}
+
+.config-buttons .btn:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    20% {
+        transform: scale(25, 25);
+        opacity: 0.3;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(40, 40);
+    }
+}
+
+/* Botões em foco */
+.config-buttons .btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 84, 84, 0.3);
+}
+
+/* Efeito de loading (opcional, para quando estiver salvando) */
+.config-buttons .btn.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.config-buttons .btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.config-buttons .btn.secondary.loading::after {
+    border: 3px solid rgba(255, 84, 84, 0.3);
+    border-top-color: var(--color-primary);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsividade para botões */
+@media (max-width: 768px) {
+    .config-buttons {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .config-buttons .btn {
+        min-width: 100%;
+        height: 44px;
+        font-size: 0.95rem;
+    }
+    
+    .config-buttons .btn.primary::before,
+    .config-buttons .btn.secondary::before {
+        font-size: 1rem;
+    }
+    
+    .config-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .config-item label {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .config-item select,
+    .config-item input[type="range"] {
+        min-width: 100%;
+        width: 100%;
+    }
+    
+    .config-item .switch {
+        align-self: flex-end;
+    }
+    
+    #fontSizeValue {
+        margin-left: 0;
+        margin-top: 8px;
+    }
+}
+
+/* Modo escuro - ajustes */
+.app[data-theme="dark"] .config-buttons .btn.secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 4px 12px rgba(255, 84, 84, 0.2);
+
+}
+
+.app[data-theme="dark"] .config-buttons .btn.secondary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-text-default);
+}
+
+.app[data-theme="dark"] .config-buttons .btn.primary {
+    box-shadow: 0 4px 12px rgba(255, 84, 84, 0.4);
+}
+
+.app[data-theme="dark"] .config-buttons .btn.primary:hover {
+    box-shadow: 0 8px 20px rgba(255, 84, 84, 0.5);
+}
+
+.app[data-theme="dark"] .config-item:hover {
+    border-color: var(--color-primary);
+}
+
+.btn.primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn.secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+}
+
+.btn.edit-profile {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+}
+
+.btn.edit-profile:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+
+/*  ETiquetas */
+.tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tag {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    background-color: var(--color-bg);
+    cursor: pointer;
+    user-select: none;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.tag:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: transparent;
+}
+
+.tag.is-active {
+    font-weight: 600;
+    box-shadow: 0 0 0 2px var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+/* Contador de uso dentro da etiqueta */
+.tag-count {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: inherit;
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 16px;
+    text-align: center;
+}
+
+/* Botão de excluir - aparece apenas no hover */
+.tag-delete {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    opacity: 0;
+}
+
+.tag:hover .tag-delete {
+    display: flex;
+    opacity: 1;
+}
+
+.tag-delete:hover {
+    background: var(--color-danger);
+}
+
+/* Efeito de pulso suave para etiquetas ativas */
+.tag.is-active::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 18px;
+    background: var(--color-primary);
+    opacity: 0.1;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.1;
+    }
+    50% {
+        opacity: 0.2;
+    }
+}
+
+/* Container da etiqueta para melhor posicionamento */
+.tag-container {
+    position: relative;
+    display: inline-block;
+    margin: 2px;
+}
+
+/* Estado vazio das etiquetas */
+.tags .empty-state {
+    width: 100%;
+    text-align: center;
+    padding: 12px 8px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Melhorias para modo escuro */
+.app[data-theme="dark"] .tag {
+    background-color: var(--color-bg-alt);
+}
+
+.app[data-theme="dark"] .tag-count {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.app[data-theme="dark"] .tag-delete {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsividade para etiquetas */
+@media (max-width: 768px) {
+    .tags {
+        gap: 6px;
+    }
+
+    .tag {
+        font-size: 0.75rem;
+        padding: 3px 6px;
+    }
+
+    .tag-delete {
+        width: 14px;
+        height: 14px;
+        font-size: 0.6rem;
+    }
+}
+
+/* Efeito de foco para acessibilidade */
+.tag:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Transição suave para todas as propriedades */
+.tag,
+.tag-delete,
+.tag-count {
+    transition: all 0.3s ease;
+}
+
+/*
+                     VISUALIZAÇÕES
+*/
+
+.view {
+    display: none;
+    padding: 24px;
+}
+
+.view.is-active {
+    display: block;
+}
+
+.view.hidden {
+    display: none;
+}
+
+/* Lista de Tarefas */
+.task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-list li {
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+}
+
+.task-list li:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.task {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    cursor: grab;
+}
+
+.task:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.task.is-completed {
+    background-color: var(--color-sidebar-bg);
+    text-decoration: line-through;
+    font-style: italic;
+}
+
+.task-main {
+    flex-grow: 1;
+    margin: 0 16px;
+}
+
+.task-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: var(--color-text-default);
+}
+
+.task-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
+.task-meta .priority {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.task-meta .priority.high {
+    color: var(--color-priority-high);
+}
+
+.task-meta .priority.medium {
+    color: var(--color-priority-medium);
+}
+
+.task-meta .priority.low {
+    color: var(--color-priority-low);
+}
+
+.task-meta .due.overdue {
+    color: var(--color-danger);
+    font-weight: 500;
+}
+
+/* Checkbox Customizado */
+.checkbox {
+    display: inline-flex;
+    position: relative;
+    cursor: pointer;
+}
+
+.checkbox input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.check {
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 4px;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: inline-block;
+}
+
+.checkbox input:checked+.check {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.checkbox input:checked+.check::after {
+    content: '✔';
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+}
+
+/* Quadro Kanban */
+.board,
+.kanban {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.column,
+.kanban-col {
+    min-width: 300px;
+    width: 33.33%;
+    background-color: var(--color-bg-alt);
+    border-radius: 8px;
+    padding: 12px;
+    transition: background-color 0.2s;
+}
+
+.column.drag-over {
+    background-color: var(--color-primary);
+    outline: 2px dashed var(--color-primary);
+    outline-offset: -4px;
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 0 4px;
+}
+
+.column-header h2,
+.kanban-col h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-default);
+}
+
+.card-list {
+    list-style: none;
+    min-height: 50px;
+}
+
+.card {
+    background-color: var(--color-bg);
+    border-radius: 6px;
+    box-shadow: var(--shadow-sm);
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid transparent;
+    transition: border-left-color 0.2s, box-shadow 0.2s;
+    cursor: grab;
+    border: 1px solid var(--color-border);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-head {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.card-head .status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.card-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    flex-grow: 1;
+}
+
+.card-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.count {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    padding: 4px;
+}
+
+/* 
+                CALENDÁRIO 
+*/
+
+.calendar-toolbar,
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 0 8px;
+}
+
+.calendar-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-default);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border: 1px solid var(--color-border);
+    border-radius: 15px;
+    overflow: hidden;
+    background-color: var(--color-bg-alt);
+    gap: 7px;
+    box-shadow: var(--shadow-sm);
+}
+
+.calendar-day-header,
+.weekday {
+    text-align: center;
+    padding: 8px;
+    font-weight: 600;
+    color: white;
+    background-color: var(--color-primary);
+    border-radius: 10px;
+    font-size: 0.875rem;
+}
+
+.calendar-day,
+.day {
+    min-height: 120px;
+    padding: 8px;
+    position: relative;
+    border-radius: 10px;
+    background-color: var(--color-bg);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.875rem;
+    overflow: hidden;
+}
+
+.empty {
+    min-height: 100px;
+    background-color: var(--color-bg);
+    padding: 8px;
+    font-size: 0.875rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.calendar-day:nth-child(7n) {
+    border-right: none;
+}
+
+.calendar-day:nth-last-child(-n+7) {
+    border-bottom: none;
+}
+
+.calendar-day-number,
+.day-number {
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: right;
+    padding-right: 6px;
+    margin-bottom: 4px;
+    color: var(--color-text-default);
+    display: block;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 24px;
+}
+
+.calendar-day.other-month,
+.day.other-month {
+    background-color: var(--color-sidebar-bg);
+    color: var(--color-text-secondary);
+}
+
+.calendar-day.other-month .calendar-day-number,
+.day.other-month .day-number {
+    color: var(--color-text-secondary);
+}
+
+.calendar-day.today,
+.day.today {
+    background-color: var(--color-bg-alt);
+}
+
+.calendar-day.today .calendar-day-number {
+    color: #111827;
+    background-color: #ff5454;
+    border-radius: 12px;
+}
+
+.day.today .day-number {
+    color: white;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+}
+
+.calendar-event {
+    display: block;
+    width: 130px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    margin-bottom: 2px;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.calendar-event.priority-high {
+    background-color: var(--color-priority-high);
+}
+
+.calendar-event.priority-medium {
+    background-color: var(--color-priority-medium);
+}
+
+.calendar-event.priority-low {
+    background-color: var(--color-priority-low);
+}
+
+.calendar-event:hover {
+    opacity: 0.9;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ====================
+   ESTILOS DE FONTE
+   ==================== */
+
+/* Ajustar tamanho de fonte base */
+html {
+  font-size: 16px;
+  transition: font-size 0.3s ease, font-family 0.3s ease;
+}
+
+/* Ajustar elementos específicos baseados no tamanho da fonte */
+body {
+  font-size: 1rem;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 2vw + 1rem, 2.5rem);
+}
+
+h2 {
+  font-size: clamp(1.25rem, 1.5vw + 1rem, 2rem);
+}
+
+h3 {
+  font-size: clamp(1.125rem, 1vw + 1rem, 1.75rem);
+}
+
+/* Controles de fonte */
+#fontSizeValue {
+  display: inline-block;
+  min-width: 40px;
+  text-align: center;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+input[type="range"]#fontSize {
+  width: 200px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+input[type="range"]#fontSize:hover {
+  opacity: 1;
+}
+
+input[type="range"]#fontSize::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+}
+
+/* Seletor de fonte */
+#fontFamily {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text-default);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+#fontFamily:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 84, 84, 0.1);
+}
+
+/* Prévia de fonte nas opções */
+#fontFamily option {
+  font-family: inherit;
+}
+
+#fontFamily option[value="Roboto"] {
+  font-family: 'Roboto', sans-serif;
+}
+
+#fontFamily option[value="Open Sans"] {
+  font-family: 'Open Sans', sans-serif;
+}
+
+#fontFamily option[value="Montserrat"] {
+  font-family: 'Montserrat', sans-serif;
+}
+
+#fontFamily option[value="Poppins"] {
+  font-family: 'Poppins', sans-serif;
+}
+
+#fontFamily option[value="Roboto Mono"] {
+  font-family: 'Roboto Mono', monospace;
+}
+
+#fontFamily option[value="Source Sans Pro"] {
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+/*
+               GRÁFICOS 
+*/
+/* Estilo específico para o gráfico de uso de etiquetas */
+#tagUsageChart {
+    cursor: pointer;
+}
+
+/* Destaque visual para gráficos interativos */
+.chart-container:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.chart-container {
+    background: var(--color-bg-alt);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-wrapper {
+    position: relative;
+    flex: 1;
+    min-height: 300px;
+    width: 100%;
+}
+
+/* Melhorias para os gráficos em dispositivos móveis */
+@media (max-width: 768px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 8px;
+    }
+
+    .chart-container {
+        padding: 16px;
+        min-height: 350px;
+    }
+
+    .chart-wrapper {
+        min-height: 250px;
+    }
+
+    .chart-title {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+}
+
+/* Ajustes específicos para gráficos em telas pequenas */
+@media (max-width: 480px) {
+    .chart-container {
+        padding: 12px;
+        min-height: 300px;
+    }
+
+    .chart-wrapper {
+        min-height: 200px;
+    }
+}
+
+/* Garantir que os gráficos sejam responsivos */
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100%;
+}
+
+/* Melhorar legibilidade do texto nos gráficos */
+.chartjs-render-monitor {
+    font-family: inherit !important;
+}
+
+/* Ajustes para modo escuro nos gráficos */
+.app[data-theme="dark"] .chart-container {
+    background-color: var(--color-sidebar-bg);
+}
+
+.app[data-theme="dark"] .chartjs-grid line {
+    stroke: var(--color-border);
+}
+
+.app[data-theme="dark"] .chartjs-tooltip {
+    background-color: var(--color-bg) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text-default) !important;
+}
+
+/*
+                             MODAIS (DIALOG)
+*/
+.modal {
+    border: none;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    background-color: var(--color-bg-alt);
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+}
+
+.modal.small {
+    max-width: 400px;
+}
+
+.modal-content {
+    padding: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-default);
+}
+
+.modal-body {
+    padding: 16px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 16px;
+    border-top: 1px solid var(--color-border);
+}
+
+/*
+                             TOASTS E RODAPÉ
+*/
+
+.toasts,
+#toasts {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--color-bg-alt);
+    border-radius: 6px;
+    box-shadow: var(--shadow-md);
+    min-width: 250px;
+    border-left: 4px solid var(--color-primary);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    color: var(--color-text-default);
+}
+
+.toast.success {
+    border-color: var(--color-priority-low);
+}
+
+.toast.error {
+    border-color: var(--color-danger);
+}
+
+.toast.info {
+    border-color: var(--color-primary);
+}
+
+.toast-content {
+    flex-grow: 1;
+    font-size: 0.9rem;
+}
+
+.toast .toast-close {
+    margin-left: 10px;
+    width: 20px;
+    height: 20px;
+}
+
+.toast.fade-out {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+/*
+                     OUTROS COMPONENTES
+*/
+
+/* Botão toggle sidebar */
+#btnToggleSidebar {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-default);
+    margin-right: 16px;
+    padding: 5px;
+}
+
+/* Títulos */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--color-text-default);
+}
+
+p,
+span,
+div {
+    color: var(--color-text-default);
+}
+
+/* Labels e textos de formulário */
+label {
+    color: var(--color-text-default);
+}
+
+/* Texto de placeholder nos inputs */
+::placeholder {
+    color: var(--color-text-light);
+}
+
+/* Seleção de texto */
+::selection {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Estilo para range de font size */
+#fontSizeValue {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-left: 8px;
+}
+
+/* Configurações section */
+.config-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--color-primary);
+}
+
+/* Estilos para o botão de alterar foto */
+.profile-photo-container {
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+
+.change-photo-btn {
+    margin-top: 10px;
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.change-photo-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Estilo responsivo para o botão */
+@media (max-width: 768px) {
+    .change-photo-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+/*
+                        RESPONSIVIDADE (Celulares e Tablets)
+*/
+
+@media (max-width: 768px) {
+    /* Layout Mobile */
+    .app[data-layout="with-sidebar"] .sidebar {
+        position: fixed;
+        left: 0;
+        top: var(--header-height);
+        height: calc(100% - var(--header-height));
+        z-index: 500;
+        box-shadow: var(--shadow-md);
+        width: 280px;
+    }
+
+    .app[data-layout="without-sidebar"] .sidebar {
+        transform: translateX(-100%);
+    }
+
+    /* Topbar */
+    .topbar .now {
+        display: none;
+    }
+
+    .topbar .brand-name {
+        display: none;
+    }
+
+    .btn#btnQuickAdd {
+        font-size: 0;
+        padding: 8px 10px;
+    }
+
+    .btn#btnQuickAdd::before {
+        content: '+';
+        font-size: 1rem;
+    }
+
+    /* Quadro Kanban */
+    .board,
+    .kanban {
+        flex-direction: column;
+        gap: 16px;
+        padding-right: 0;
+    }
+
+    .column,
+    .kanban-col {
+        min-width: 100%;
+        width: 100%;
+    }
+
+    /* Painel de Detalhes */
+    .details {
+        width: 100%;
+    }
+
+    /* Modais */
+    .modal {
+        margin: auto 10px;
+    }
+
+    /* Configurações */
+    .config-option label,
+    .config-item label {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .info-field {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .charts-grid,
+    .charts {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .charts-section {
+        padding: 16px;
+        margin-top: 24px;
+    }
+
+    .chart-wrapper {
+        height: 220px;
+    }
+
+    .charts-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    /* Calendário Mobile */
+    .calendar-grid {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0;
+    }
+
+    .calendar-day,
+    .day {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .calendar-day-header,
+    .weekday {
+        padding: 8px 4px;
+        font-size: 0.75rem;
+    }
+
+    .calendar-day-number,
+    .day-number {
+        font-size: 0.75rem;
+    }
+
+    .calendar-event {
+        font-size: 0.7rem;
+        padding: 1px 2px;
+    }
+}
