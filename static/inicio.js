@@ -384,7 +384,7 @@ const I18N = {
   'status.todo': {
     'pt-BR': 'A fazer',
     'en-US': 'To do',
-    'es-ES': 'Por hacer',
+    'es-ES': 'Por fazer',
     'fr-FR': 'À faire'
   },
   'status.doing': {
@@ -681,7 +681,7 @@ const I18N = {
     'pt-BR': 'Acompanhe sua produtividade ao longo da semana',
     'en-US': 'Track your productivity throughout the week',
     'es-ES': 'Sigue tu productividad durante la semana',
-    'fr-FR': 'Suivez votre productivité tout au long de la semaine'
+    'fr-FR': 'Suivez votre productivité tout au long de la semana'
   },
   'chart.infoTime': {
     'pt-BR': 'Veja como você distribui seu tempo entre diferentes atividades',
@@ -699,7 +699,7 @@ const I18N = {
     'pt-BR': 'Veja quantas rotinas utilizam cada etiqueta',
     'en-US': 'See how many routines use each tag',
     'es-ES': 'Vea cuántas rutinas utilizan cada etiqueta',
-    'fr-FR': 'Voyez combien de routines utilisent chaque étiquette'
+    'fr-FR': 'Voyez combien de routines utilisent cada étiquette'
   },
 
   // Modal nova etiqueta
@@ -733,14 +733,14 @@ const I18N = {
     'pt-BR': 'Próximo mês',
     'en-US': 'Next month',
     'es-ES': 'Próximo mes',
-    'fr-FR': 'Mois suivant'
+    'fr-FR': 'Mois seguinte'
   },
 
   // Notificações
   'notification.test': {
     'pt-BR': 'Esta é uma notificação de teste do Life Build!',
     'en-US': 'This is a test notification from Life Build!',
-    'es-ES': '¡Esta es una notificación de prueba de Life Build!',
+    'es-ES': '¡Esta é uma notificación de prueba de Life Build!',
     'fr-FR': 'Ceci est une notification de test de Life Build!'
   },
   'notification.reminder': {
@@ -766,7 +766,7 @@ const I18N = {
   'months': {
     'pt-BR': ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
     'en-US': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    'es-ES': ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+    'es-ES': ['Enero', 'Febrero', 'Marzo', 'Abril', 'Maio', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
     'fr-FR': ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
   },
   'weekdays': {
@@ -1019,7 +1019,6 @@ function changeLanguage(newLang) {
   state.preferences.language = newLang;
   saveData();
   applyLanguageToDOM();
-  showToastTranslation('toast.saved', 'success');
 }
 
 /*
@@ -1196,32 +1195,8 @@ function generateId() {
 
 // Mostrar um toast (notificação temporária)
 function showToast(message, type = 'info', duration = 3000) {
-  if (!templates.toast || !DOM.toastsContainer) {
-    console.log(`[${type}] ${message}`);
-    return;
-  }
-
-  // Clona o template do toast
-  const toastElement = templates.toast.content.cloneNode(true);
-  const toast = toastElement.querySelector('.toast');
-  // Insere o conteúdo e a classe de tipo
-  toast.querySelector('.toast-content').textContent = message;
-  toast.classList.add(type);
-
-  // Adiciona o toast ao container (prepend para mostrar em cima)
-  DOM.toastsContainer.prepend(toast);
-
-  // Fecha ao clicar no botão 'close' interno
-  const closeBtn = toast.querySelector('.toast-close');
-  if (closeBtn) closeBtn.addEventListener('click', () => toast.remove());
-
-  // Auto-destrói após 'duration' ms
-  setTimeout(() => {
-    toast.classList.add('fade-out');
-    toast.addEventListener('transitionend', () => {
-      try { toast.remove(); } catch (e) { }
-    });
-  }, duration);
+  // Função desativada - não mostra mais mensagens
+  return;
 }
 
 // Converte um objeto Date em string 'YYYY-MM-DD' para inputs do tipo date
@@ -1253,7 +1228,6 @@ function normalizeTag(tagStr) {
 function addNewRoutine({ title, description, date, time, priority, tag, status = 'todo', completed = false }) {
   // Validação mínima
   if (!title || !title.trim()) {
-    showToastTranslation('toast.requiredTitle', 'error');
     return null;
   }
 
@@ -1281,7 +1255,6 @@ function addNewRoutine({ title, description, date, time, priority, tag, status =
   state.routines.push(newRoutine);
   saveData();
   render();
-  showToastTranslation('toast.added', 'success');
 
   // Verificar se deve enviar notificação
   if (date && state.preferences.notifications) {
@@ -1302,10 +1275,8 @@ function toggleTaskCompletion(taskId) {
   // Ajuste do status se necessário
   if (task.completed) {
     task.status = 'done';
-    showToast(`Rotina "${task.title}" concluída!`, 'success');
   } else {
     if (task.status === 'done') task.status = 'todo';
-    showToast(`Rotina "${task.title}" marcada como pendente.`, 'info');
   }
 
   saveData();
@@ -1367,7 +1338,6 @@ function saveTaskDetails(e) {
   const tag = DOM.taskTag ? normalizeTag(DOM.taskTag.value) : undefined;
 
   if (!title) {
-    showToastTranslation('toast.requiredTitle', 'error');
     return;
   }
 
@@ -1384,7 +1354,6 @@ function saveTaskDetails(e) {
   saveData();
   render();
   closeDetails();
-  showToastTranslation('toast.saved', 'success');
 }
 
 // Exclui a tarefa selecionada
@@ -1398,7 +1367,6 @@ function deleteCurrentTask() {
   saveData();
   render();
   closeDetails();
-  showToastTranslation('toast.deleted', 'info');
 }
 
 // Duplica a tarefa selecionada
@@ -1417,7 +1385,6 @@ function duplicateCurrentTask() {
   saveData();
   render();
   closeDetails();
-  showToastTranslation('toast.copied', 'success');
 }
 
 /*
@@ -1469,7 +1436,6 @@ function processAddTagForm(e) {
 
   // Validação
   if (!name) {
-    showToastTranslation('toast.requiredTitle', 'error');
     return;
   }
 
@@ -1496,7 +1462,6 @@ function closeAddTagModal() {
 // Adiciona nova etiqueta ao estado (verifica duplicidade por nome)
 function addNewTag({ name, color }) {
   if (!name || !name.trim()) {
-    showToast('O nome da etiqueta é obrigatório.', 'error');
     return null;
   }
 
@@ -1504,7 +1469,6 @@ function addNewTag({ name, color }) {
 
   // Verificar se já existe (case insensitive)
   if (state.tags.some(t => t.name.toLowerCase() === normalized)) {
-    showToast('Esta etiqueta já existe!', 'error');
     return null;
   }
 
@@ -1518,15 +1482,6 @@ function addNewTag({ name, color }) {
   saveData();
   renderTags();
 
-  const lang = getLang();
-  const successMessages = {
-    'pt-BR': `Etiqueta #${newTag.name} adicionada!`,
-    'en-US': `Tag #${newTag.name} added!`,
-    'es-ES': `¡Etiqueta #${newTag.name} añadida!`,
-    'fr-FR': `Étiquette #${newTag.name} ajoutée !`
-  };
-
-  showToast(successMessages[lang] || successMessages['pt-BR'], 'success');
   return newTag;
 }
 
@@ -1596,16 +1551,6 @@ function removeTagFromRoutinesAndDelete(tag) {
 
   // Excluir a etiqueta
   confirmDeleteTag(tag);
-
-  const lang = getLang();
-  const successMessages = {
-    'pt-BR': `Etiqueta #${tag.name} removida de todas as rotinas e excluída!`,
-    'en-US': `Tag #${tag.name} removed from all routines and deleted!`,
-    'es-ES': `¡Etiqueta #${tag.name} eliminada de todas las rutinas y borrada!`,
-    'fr-FR': `Étiquette #${tag.name} supprimée de toutes les routines et effacée !`
-  };
-
-  showToast(successMessages[lang] || successMessages['pt-BR'], 'success');
 }
 
 // Confirmar exclusão da etiqueta
@@ -1613,16 +1558,6 @@ function confirmDeleteTag(tag) {
   state.tags = state.tags.filter(t => t.id !== tag.id);
   saveData();
   renderTags();
-
-  const lang = getLang();
-  const successMessages = {
-    'pt-BR': `Etiqueta #${tag.name} excluída!`,
-    'en-US': `Tag #${tag.name} deleted!`,
-    'es-ES': `¡Etiqueta #${tag.name} eliminada!`,
-    'fr-FR': `Étiquette #${tag.name} supprimée !`
-  };
-
-  showToast(successMessages[lang] || successMessages['pt-BR'], 'success');
 }
 
 // Contar quantas rotinas usam uma etiqueta
@@ -1760,16 +1695,6 @@ function filterByTag(tagName) {
 
   // Renderizar a view atual com o filtro aplicado
   render();
-
-  const lang = getLang();
-  const filterMessages = {
-    'pt-BR': `Filtrado por #${tagName}`,
-    'en-US': `Filtered by #${tagName}`,
-    'es-ES': `Filtrado por #${tagName}`,
-    'fr-FR': `Filtré par #${tagName}`
-  };
-
-  showToast(filterMessages[lang] || filterMessages['pt-BR'], 'info');
 
   // Função para abrir modal
   function openModal(modalId) {
@@ -2363,16 +2288,9 @@ function handleDrop(e) {
 
   saveData();
   render();
-
-  const statusText = {
-    'todo': 'A fazer',
-    'doing': 'Em progresso',
-    'done': 'Concluído'
-  };
-  showToast(`Rotina movida para: ${statusText[newStatus] || 'A fazer'}`, 'info');
 }
 
-/*
+/*   
    14) CONFIGURAÇÕES E PREFERÊNCIAS - FUNÇÕES ATUALIZADAS
 */
 
@@ -2454,7 +2372,6 @@ function saveSettings() {
   if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = state.preferences.fontSize + 'px';
 
   saveData();
-  showToastTranslation('toast.saved', 'success');
 }
 
 // Restaura configurações padrão - FUNÇÃO ATUALIZADA
@@ -2478,7 +2395,6 @@ function resetSettings() {
   loadSettings();
   saveData();
   applyLanguageToDOM();
-  showToastTranslation('toast.saved', 'info');
 }
 
 // Alterna o tema
@@ -2726,7 +2642,6 @@ function generateRoutineDates(periodType, formData) {
     }
   } catch (error) {
     console.error('Erro ao gerar datas:', error);
-    showToast(error.message, 'error');
     return [];
   }
 
@@ -2802,7 +2717,6 @@ function addRoutinesWithCustomPeriod(formData) {
     const dates = generateRoutineDates(formData.periodType, formData);
 
     if (dates.length === 0) {
-      showToast('Nenhuma data válida foi gerada para esta rotina.', 'error');
       return;
     }
 
@@ -2837,20 +2751,9 @@ function addRoutinesWithCustomPeriod(formData) {
 
     if (errors.length > 0) {
       console.error('Erros ao criar rotinas:', errors);
-      showToast(`${createdCount} rotina(s) criada(s), ${errors.length} com erro.`, 'warning');
-    } else {
-      const lang = getLang();
-      const successMessages = {
-        'pt-BR': `${createdCount} rotina(s) criada(s) com sucesso!`,
-        'en-US': `${createdCount} routine(s) created successfully!`,
-        'es-ES': `¡${createdCount} rutina(s) creada(s) con éxito!`,
-        'fr-FR': `${createdCount} routine(s) créée(s) avec succès !`
-      };
-      showToast(successMessages[lang] || successMessages['pt-BR'], 'success');
     }
   } catch (error) {
     console.error('Erro ao adicionar rotinas:', error);
-    showToast('Erro ao criar rotinas: ' + error.message, 'error');
   }
 }
 
@@ -2871,13 +2774,11 @@ function processCustomPeriodForm(e) {
   const tag = DOM.customTag ? normalizeTag(DOM.customTag.value) : undefined;
 
   if (!title) {
-    showToastTranslation('toast.requiredTitle', 'error');
     return;
   }
 
   const periodTypeRadio = document.querySelector('input[name="periodType"]:checked');
   if (!periodTypeRadio) {
-    showToast('Selecione um tipo de período.', 'error');
     return;
   }
 
@@ -2898,7 +2799,6 @@ function processCustomPeriodForm(e) {
         const endDate = DOM.customEndDate ? DOM.customEndDate.value : '';
 
         if (!startDate || !endDate) {
-          showToast('As datas de início e término são obrigatórias.', 'error');
           return;
         }
 
@@ -2919,7 +2819,6 @@ function processCustomPeriodForm(e) {
         });
 
         if (specificDates.length === 0) {
-          showToast('Pelo menos uma data específica deve ser fornecida.', 'error');
           return;
         }
 
@@ -2933,19 +2832,16 @@ function processCustomPeriodForm(e) {
         const endTypeRadio = document.querySelector('input[name="recurringEnd"]:checked');
 
         if (!endTypeRadio) {
-          showToast('Selecione uma opção de término.', 'error');
           return;
         }
 
         const endType = endTypeRadio.value;
 
         if (!recurringStartDate) {
-          showToast('A data de início é obrigatória para rotinas recorrentes.', 'error');
           return;
         }
 
         if (interval < 1) {
-          showToast('O intervalo deve ser pelo menos 1.', 'error');
           return;
         }
 
@@ -2957,14 +2853,12 @@ function processCustomPeriodForm(e) {
         if (endType === 'after') {
           const occurrences = DOM.recurringOccurrences ? parseInt(DOM.recurringOccurrences.value) : 10;
           if (occurrences < 1) {
-            showToast('O número de ocorrências deve ser pelo menos 1.', 'error');
             return;
           }
           formData.occurrences = occurrences;
         } else if (endType === 'on') {
           const endDate = DOM.recurringEndDate ? DOM.recurringEndDate.value : '';
           if (!endDate) {
-            showToast('A data de término é obrigatória quando selecionada.', 'error');
             return;
           }
           formData.endDate = endDate;
@@ -2977,132 +2871,115 @@ function processCustomPeriodForm(e) {
 
   } catch (error) {
     console.error('Erro no processamento do formulário:', error);
-    showToast('Erro: ' + error.message, 'error');
   }
 }
 
 /*
-   16) SISTEMA DE NOTIFICAÇÕES
+   16) FOnte personalizada
 */
-
-// Configurar notificações
-function setupNotifications() {
-  if (!('Notification' in window)) {
-    console.log('Este navegador não suporta notificações');
-    if (DOM.notificationsToggle) {
-      DOM.notificationsToggle.disabled = true;
-      DOM.notificationsToggle.checked = false;
-    }
-    return;
-  }
-
-  if (Notification.permission === 'granted') {
-    if (DOM.notificationsToggle) {
-      DOM.notificationsToggle.checked = true;
-    }
-  } else if (Notification.permission === 'denied') {
-    if (DOM.notificationsToggle) {
-      DOM.notificationsToggle.checked = false;
-      DOM.notificationsToggle.disabled = true;
-    }
-  }
+// Função para aplicar fonte personalizada
+function applyFontFamily(fontFamily) {
+    document.body.style.fontFamily = fontFamily;
+    
+    // Opcional: Salvar no localStorage para persistir
+    localStorage.setItem('customFontFamily', fontFamily);
 }
 
-// Função para solicitar permissão de notificação
-async function requestNotificationPermission() {
-  if (!('Notification' in window)) {
-    showToast(t('notification.unsupported'), 'error');
-    return false;
-  }
-
-  if (Notification.permission === 'granted') {
-    return true;
-  }
-
-  if (Notification.permission === 'denied') {
-    showToast(t('notification.permissionDenied'), 'error');
-    if (DOM.notificationsToggle) {
-      DOM.notificationsToggle.checked = false;
+// Função para carregar a fonte salva
+function loadSavedFont() {
+    const savedFont = localStorage.getItem('customFontFamily');
+    if (savedFont) {
+        applyFontFamily(savedFont);
+        // Atualizar o select para refletir a fonte salva
+        const fontSelect = document.getElementById('fontFamily');
+        if (fontSelect) {
+            fontSelect.value = savedFont;
+        }
     }
-    return false;
-  }
-
-  const permission = await Notification.requestPermission();
-
-  if (permission === 'granted') {
-    showToast('Notificações ativadas com sucesso!', 'success');
-    return true;
-  } else {
-    showToast(t('notification.permissionDenied'), 'error');
-    if (DOM.notificationsToggle) {
-      DOM.notificationsToggle.checked = false;
-    }
-    return false;
-  }
 }
 
-// Função para enviar notificação de exemplo
-function sendTestNotification() {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    return;
-  }
-
-  const notification = new Notification('Life Build', {
-    body: t('notification.test'),
-    icon: 'img/Ryo.jpg',
-    badge: 'img/Ryo.jpg'
-  });
-
-  notification.onclick = function () {
-    window.focus();
-    notification.close();
-  };
-}
-
-// Configurar evento específico para o toggle de notificações
-function setupNotificationToggle() {
-  if (DOM.notificationsToggle) {
-    DOM.notificationsToggle.addEventListener('change', function () {
-      if (this.checked) {
-        requestNotificationPermission().then(permissionGranted => {
-          if (!permissionGranted) {
-            this.checked = false;
-          } else {
-            setTimeout(sendTestNotification, 1000);
-          }
+// Função para inicializar o seletor de fonte
+function initFontFamilySelector() {
+    const fontSelect = document.getElementById('fontFamily');
+    
+    if (fontSelect) {
+        // Carregar fonte salva
+        loadSavedFont();
+        
+        // Adicionar listener para mudanças
+        fontSelect.addEventListener('change', function() {
+            const selectedFont = this.value;
+            applyFontFamily(selectedFont);
+            
+            // Opcional: Mostrar feedback visual
+            showToast(`Fonte alterada para: ${selectedFont}`);
         });
-      }
-    });
-  }
-}
-
-// Função para enviar notificações de lembretes
-function sendReminderNotification(task) {
-  if (!state.preferences.notifications || !('Notification' in window) || Notification.permission !== 'granted') {
-    return;
-  }
-
-  const now = new Date();
-  const taskTime = task.time ? new Date(`${task.date}T${task.time}`) : new Date(`${task.date}T09:00:00`);
-
-  if (task.date === now.toISOString().split('T')[0]) {
-    const timeDiff = taskTime.getTime() - now.getTime();
-
-    if (timeDiff <= 15 * 60 * 1000 && timeDiff > -60 * 60 * 1000) {
-      const notification = new Notification('Life Build', {
-        body: `${t('notification.reminder')}"${task.title}" - ${task.time || t('filter.hoje')}`,
-        icon: 'img/Ryo.jpg',
-        tag: task.id
-      });
-
-      notification.onclick = function () {
-        window.focus();
-        openTaskDetails(task.id);
-        notification.close();
-      };
     }
-  }
 }
+
+// Função de utilitário para mostrar toast (se você já tiver uma implementação)
+function showToast(message, type = 'info') {
+    // Se você já tem uma função de toast, use-a
+    // Caso contrário, implemente uma básica ou console.log
+    console.log(message);
+}
+
+// No seu código principal, inicialize quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', function() {
+    initFontFamilySelector();
+    
+    // Se você tiver um botão de salvar configurações, adicione também:
+    const saveBtn = document.getElementById('btnSaveSettings');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            const fontSelect = document.getElementById('fontFamily');
+            if (fontSelect) {
+                applyFontFamily(fontSelect.value);
+                showToast('Configurações salvas com sucesso!', 'success');
+            }
+        });
+    }
+    
+    // Se você tiver um botão de reset:
+    const resetBtn = document.getElementById('btnResetSettings');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            // Resetar para fonte padrão
+            const defaultFont = 'Inter';
+            const fontSelect = document.getElementById('fontFamily');
+            if (fontSelect) {
+                fontSelect.value = defaultFont;
+                applyFontFamily(defaultFont);
+                localStorage.removeItem('customFontFamily');
+                showToast('Configurações restauradas para padrão', 'info');
+            }
+        });
+    }
+
+    // Função principal para aplicar fonte
+function applyCustomFont() {
+    const fontSelect = document.getElementById('fontFamily');
+    if (fontSelect) {
+        // Aplicar fonte ao mudar seleção
+        fontSelect.addEventListener('change', function() {
+            document.body.style.fontFamily = this.value;
+            localStorage.setItem('customFontFamily', this.value);
+        });
+        
+        // Carregar fonte salva
+        const savedFont = localStorage.getItem('customFontFamily');
+        if (savedFont) {
+            document.body.style.fontFamily = savedFont;
+            fontSelect.value = savedFont;
+        }
+    }
+}
+
+// Inicializar quando a página carregar
+document.addEventListener('DOMContentLoaded', applyCustomFont);
+
+
+});
 
 /*
    17) SISTEMA DE TROCA DE FOTO DO PERFIL
@@ -3134,12 +3011,10 @@ function handleProfilePhotoChange(event) {
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
-    showToast('Por favor, selecione uma imagem válida.', 'error');
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    showToast('A imagem deve ter no máximo 5MB.', 'error');
     return;
   }
 
@@ -3150,7 +3025,6 @@ function handleProfilePhotoChange(event) {
   };
 
   reader.onerror = function () {
-    showToast('Erro ao carregar a imagem.', 'error');
   };
 
   reader.readAsDataURL(file);
@@ -3173,8 +3047,6 @@ function updateProfilePhoto(imageData) {
   }
 
   saveData();
-
-  showToastTranslation('toast.saved', 'success');
 }
 
 // Carregar foto do perfil salva
@@ -3234,28 +3106,6 @@ function setupEventListeners() {
         }
 
         render();
-
-        if (!wasActive) {
-          const filter = link.dataset.filter;
-          const lang = getLang();
-          const filterNames = {
-            'pendentes': t('filter.pendentes'),
-            'concluidas': t('filter.concluidas'),
-            'alta': t('filter.alta'),
-            'media': t('filter.media'),
-            'baixa': t('filter.baixa'),
-            'semData': t('filter.semData')
-          };
-
-          const filterMessages = {
-            'pt-BR': `Filtrado por: ${filterNames[filter]}`,
-            'en-US': `Filtered by: ${filterNames[filter]}`,
-            'es-ES': `Filtrado por: ${filterNames[filter]}`,
-            'fr-FR': `Filtré par: ${filterNames[filter]}`
-          };
-
-          showToast(filterMessages[lang] || filterMessages['pt-BR'], 'info');
-        }
       });
     });
   }
@@ -3401,7 +3251,6 @@ function setupEventListeners() {
         state.profile[field] = newValue.trim();
         saveData();
         renderProfile();
-        showToast(`${field} atualizado com sucesso!`, 'success');
       }
     });
   });
@@ -3976,16 +3825,6 @@ function renderTagUsageChart() {
             filterByTag(tagName);
             // Mudar para view "Todas as Rotinas" para ver o filtro aplicado
             setCurrentView('todasRotinas');
-
-            const lang = getLang();
-            const filterMessages = {
-              'pt-BR': `Filtrado por #${tagName}`,
-              'en-US': `Filtered by #${tagName}`,
-              'es-ES': `Filtrado por #${tagName}`,
-              'fr-FR': `Filtré par #${tagName}`
-            };
-
-            showToast(filterMessages[lang] || filterMessages['pt-BR'], 'info');
           }
         }
       }
@@ -4163,25 +4002,6 @@ function handleDayClick(e) {
   const dateStr = cell.dataset.date;
   if (!dateStr) return;
 
-  // Mostrar toast informativo
-  const dateObj = new Date(dateStr + 'T12:00:00');
-  const lang = getLang();
-  const formattedDate = dateObj.toLocaleDateString(lang, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  const toastMessages = {
-    'pt-BR': `Dia selecionado: ${formattedDate}. Abrindo formulário de nova rotina...`,
-    'en-US': `Selected day: ${formattedDate}. Opening new routine form...`,
-    'es-ES': `Día seleccionado: ${formattedDate}. Abriendo formulario de nueva rutina...`,
-    'fr-FR': `Jour sélectionné: ${formattedDate}. Ouverture du formulaire de nouvelle routine...`
-  };
-
-  showToast(toastMessages[lang] || toastMessages['pt-BR'], 'info', 2000);
-
   // Abrir modal de nova rotina com a data preenchida
   setTimeout(() => {
     openCustomPeriodModalWithDate(dateStr);
@@ -4344,11 +4164,203 @@ function addCalendarStyles() {
   document.head.appendChild(style);
 }
 
+/*
+   22) INTEGRAÇÃO COM API BACKEND
+*/
 
+const API_BASE_URL = 'http://localhost:5000'; // URL do seu Flask
 
+// Verificar autenticação
+async function checkAuth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/rotinas`, {
+            credentials: 'include' // para enviar cookies de sessão
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Erro ao verificar autenticação:', error);
+        return false;
+    }
+}
+
+// Carregar dados do backend
+async function loadDataFromBackend() {
+    try {
+        const [rotinas, etiquetas, config, estatisticas] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/rotinas`).then(r => r.json()),
+            fetch(`${API_BASE_URL}/api/etiquetas`).then(r => r.json()),
+            fetch(`${API_BASE_URL}/api/configuracoes`).then(r => r.json()),
+            fetch(`${API_BASE_URL}/api/estatisticas`).then(r => r.json())
+        ]);
+
+        // Atualizar estado local
+        state.routines = rotinas.map(r => ({
+            id: `t${r.id}`,
+            title: r.titulo,
+            description: r.descricao,
+            date: r.data_vencimento,
+            time: r.hora,
+            priority: r.prioridade,
+            tag: r.etiquetas?.[0]?.nome,
+            status: r.status,
+            completed: r.concluida,
+            isRecurring: r.tipo_periodo === 'recorrente'
+        }));
+
+        state.tags = etiquetas.map(e => ({
+            id: `tag${e.id}`,
+            name: e.nome,
+            color: e.cor
+        }));
+
+        state.preferences = {
+            theme: config.tema,
+            notifications: config.notificacoes,
+            language: config.idioma,
+            fontFamily: config.fonte,
+            fontSize: config.tamanho_fonte.toString(),
+            showCompleted: config.mostrar_concluidas
+        };
+
+        state.profile = await fetch(`${API_BASE_URL}/api/usuario`).then(r => r.json());
+
+        saveToLocalStorage(); // Manter cache local
+        render();
+        
+    } catch (error) {
+        console.error('Erro ao carregar do backend:', error);
+        // Fallback para localStorage
+        loadData();
+    }
+}
+
+// Salvar rotina no backend
+async function saveRoutineToBackend(routine) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/rotinas`, {
+            method: routine.id.startsWith('t') ? 'PUT' : 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: routine.id.replace('t', ''),
+                titulo: routine.title,
+                descricao: routine.description,
+                data_vencimento: routine.date,
+                hora: routine.time,
+                prioridade: routine.priority,
+                status: routine.status,
+                concluida: routine.completed,
+                etiquetas: routine.tag ? [{
+                    nome: routine.tag,
+                    cor: getTagColor(routine.tag)
+                }] : []
+            }),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const savedRoutine = await response.json();
+            return { ...routine, id: `t${savedRoutine.id}` };
+        }
+        return null;
+    } catch (error) {
+        console.error('Erro ao salvar rotina:', error);
+        return null;
+    }
+}
+
+// Atualizar função addNewRoutine para usar backend
+async function addNewRoutine({ title, description, date, time, priority, tag, status = 'todo', completed = false }) {
+    if (!title || !title.trim()) {
+        return null;
+    }
+
+    const routineData = {
+        title: title.trim(),
+        description: description || '',
+        date: date || undefined,
+        time: time || undefined,
+        priority: priority || 'medium',
+        tag: tag ? normalizeTag(tag) : undefined,
+        status: status,
+        completed: !!completed
+    };
+
+    // Tentar salvar no backend primeiro
+    const savedRoutine = await saveRoutineToBackend(routineData);
+    
+    if (savedRoutine) {
+        // Atualizar estado local com a resposta do backend
+        state.routines.push(savedRoutine);
+        render();
+        return savedRoutine;
+    } else {
+        // Fallback para localStorage
+        return addNewRoutineLocal(routineData);
+    }
+}
+
+// Função auxiliar para localStorage (fallback)
+function addNewRoutineLocal(routineData) {
+    const newRoutine = {
+        id: generateId(),
+        ...routineData,
+        isRecurring: false
+    };
+
+    state.routines.push(newRoutine);
+    saveData();
+    render();
+    
+    return newRoutine;
+}
+
+// Sincronizar dados periodicamente
+async function syncWithBackend() {
+    if (await checkAuth()) {
+        await loadDataFromBackend();
+    }
+}
+
+// Modificar a função init() para usar backend
+async function init() {
+    // Tentar carregar do backend primeiro
+    if (await checkAuth()) {
+        await loadDataFromBackend();
+    } else {
+        // Fallback para localStorage
+        loadData();
+    }
+
+    // Resto do código de inicialização...
+    fixDOMIssues();
+    setupEventListeners();
+    setupProfilePhotoChange();
+    setupPhotoChangeButton();
+    loadProfilePhoto();
+    setupNotifications();
+    setupNotificationToggle();
+    updateClock();
+    setInterval(updateClock, 60000);
+    setupDragAndDrop();
+    loadSettings();
+    applyLanguageToDOM();
+    renderTags();
+    updateFiltersVisibility();
+    
+    if (state.currentView === 'graficos') {
+        setTimeout(initCharts, 100);
+    }
+    
+    render();
+    
+    // Sincronizar a cada 5 minutos
+    setInterval(syncWithBackend, 5 * 60 * 1000);
+}
 
 /*
-   22) INICIALIZAÇÃO DA APLICAÇÃO
+   23) INICIALIZAÇÃO DA APLICAÇÃO
 */
 
 // Inicializar a aplicação
