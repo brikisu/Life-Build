@@ -170,16 +170,17 @@ a {
 
 .brand-name {
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 1px;
     color: #ff5454;
     margin-left: 8px;
+    cursor: default;
 }
 
 .brand {
     display: flex;
     align-items: center;
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 1px;
     color: #ff5454;
     margin-left: 8px;
 }
@@ -188,6 +189,7 @@ a {
     font-size: 1.5rem;
     margin-right: 6px;
     color: #ff5454;
+    cursor: default;
 }
 
 .icon {
@@ -1429,7 +1431,6 @@ input:checked+.slider:before {
 
 .task.is-completed {
     background-color: var(--color-sidebar-bg);
-    text-decoration: line-through;
     font-style: italic;
 }
 
@@ -1821,13 +1822,13 @@ input[type="range"]#fontSize::-webkit-slider-thumb {
 
 /* Seletor de fonte */
 #fontFamily {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
+  width: 15%;
+  padding: 10px 12px;
+  border: 2px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-bg);
   color: var(--color-text-default);
-  font-size: 0.9rem;
+  font-size: 1.0rem;
   transition: border-color 0.2s;
 }
 

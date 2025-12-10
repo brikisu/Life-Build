@@ -21,7 +21,7 @@
         <span class="icon" aria-hidden="true">☰</span>
       </button>
 
-      <a href="#" class="brand" aria-label="Página inicial">
+      <a class="brand" aria-label="Página inicial">
         <span class="brand-mark" aria-hidden="true">✔</span>
         <span class="brand-name">Life build</span>
       </a>
@@ -186,13 +186,10 @@
             <main class="profile-container">
               <section class="profile-header">
                 <div class="profile-banner"></div>
-                <img src="img/Ryo.jpg" alt="Foto do perfil" class="profile-photo" />
+                <img src="" alt="Foto do perfil" class="profile-photo" id="profilePhoto" />
                 <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" />
                 <div class="profile-info">
-                  <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" />
-                  <div class="profile-info">
-                    <button class="btn small" id="changePhotoBtn" data-i18n="profile.changePhoto">Alterar Foto</button>
-                  </div>
+                  <button class="btn small" id="changePhotoBtn" data-i18n="profile.changePhoto">Alterar Foto</button>
                 </div>
               </section>
 
@@ -202,7 +199,7 @@
                 <div class="info-item">
                   <label data-i18n="profile.nomeUsuario">Nome de usuário</label>
                   <div class="info-field">
-                    <span id="userName"> "email"""d</span>
+                    <span id="userName"></span>
                     <button class="edit-btn" data-edit="userName" data-i18n="profile.editar">Editar</button>
                   </div>
                 </div>
@@ -210,7 +207,7 @@
                 <div class="info-item">
                   <label data-i18n="profile.email">E-mail</label>
                   <div class="info-field">
-                    <span id="userEmail">*****************@gmail.com</span>
+                    <span id="userEmail"></span>
                     <a href="#" class="link" id="showEmail" data-i18n="profile.mostrar">Mostrar</a>
                   </div>
                 </div>
@@ -486,7 +483,8 @@
     <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
     <footer class="footer" role="contentinfo">
-      <small>NCDRP - 2025.</small>
+      <small>&copy; 2025 NCDRP. Life Build - Gerenciador de rotinas e tarefas.<br>
+        Todos os direitos reservados.</small>
     </footer>
   </div>
 

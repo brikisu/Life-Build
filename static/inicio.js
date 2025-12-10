@@ -8,73 +8,11 @@ const STORAGE_KEY = 'routineAppData_v2_multilang';
 // Dados padrão usados na primeira execução (apenas exemplo/teste)
 const DEFAULT_DATA = {
   // Rotinas iniciais de exemplo (ajuste como quiser)
-  routines: [
-    {
-      id: 't1',
-      title: 'Treino de força (peito e tríceps)',
-      description: 'Foco em progressão de carga.',
-      date: new Date().toISOString().split('T')[0], // data de hoje no formato YYYY-MM-DD
-      time: '08:00',
-      priority: 'high',
-      tag: 'saúde',
-      completed: false,
-      status: 'doing'
-    },
-    {
-      id: 't2',
-      title: 'Reunião de planejamento semanal',
-      description: 'Revisar metas e definir prioridades.',
-      date: new Date().toISOString().split('T')[0],
-      time: '10:30',
-      priority: 'medium',
-      tag: 'trabalho',
-      completed: false,
-      status: 'todo'
-    },
-    {
-      id: 't3',
-      title: 'Ler 50 páginas do livro "Atomic Habits"',
-      description: 'Hábito de leitura diário.',
-      date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // amanhã
-      time: undefined,
-      priority: 'low',
-      tag: 'estudos',
-      completed: false,
-      status: 'todo'
-    },
-    {
-      id: 't4',
-      title: 'Pagar contas mensais',
-      description: 'Água, luz, internet.',
-      date: new Date().toISOString().split('T')[0],
-      time: undefined,
-      priority: 'high',
-      tag: 'pessoal',
-      completed: true,
-      status: 'done'
-    }
-  ],
-  // Etiquetas iniciais
-  tags: [
-    { id: 'tag1', name: 'pessoal', color: '#4f46e5' },
-    { id: 'tag2', name: 'trabalho', color: '#10b981' },
-    { id: 'tag3', name: 'saúde', color: '#ef4444' },
-    { id: 'tag4', name: 'estudos', color: '#f59e0b' }
-  ],
-  // Preferências iniciais
-  preferences: {
-    theme: 'light',
-    showCompleted: true,
-    notifications: false,
-    language: 'pt-BR',
-    fontFamily: 'Inter',
-    fontSize: '16'
-  },
   // Perfil do usuário
   profile: {
-    displayName: 'Carlos',
-    userName: 'onror',
-    email: 'exemplo@gmail.com'
+    displayName: '',
+    userName: '',
+    email: '@gmail.com'
   }
 };
 
@@ -3234,7 +3172,7 @@ function setupEventListeners() {
         DOM.userEmail.textContent = state.profile.email;
         DOM.showEmail.textContent = t('profile.ocultar');
       } else {
-        DOM.userEmail.textContent = '*****************@gmail.com';
+        DOM.userEmail.textContent = '@gmail.com';
         DOM.showEmail.textContent = t('profile.mostrar');
       }
     });
