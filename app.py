@@ -1,137 +1,248 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User,Rotina
-from datetime import datetime
-import os
+from flask import Flask, jsonify, request, session, render_template
+from flask_cors import CORS
 import sqlite3
-from flask import Flask, render_template
+import hashlib
 
 app = Flask(__name__)
-app.secret_key = 'chave-secreta'
+app.secret_key = 'lifebuild_secret_key_2025'
+CORS(app)
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(BASE_DIR, 'banco.db')}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Configurar para aceitar JSON
+app.config['JSON_SORT_KEYS'] = False
 
-db.init_app(app)
+@app.before_request
+def handle_json():
+    """Middleware para garantir que JSON seja processado corretamente"""
+    if request.method == 'POST':
+        # Se o Content-Type não for JSON mas os dados forem JSON, ajusta
+        if not request.is_json and request.data:
+            try:
+                request.json = request.get_json(force=True)
+            except:
+                pass
 
-with app.app_context():
-    db.create_all()
+# ====== BANCO DE DADOS INTEGRADO ======
 
+class lifebuildDB:
+    def __init__(self, db_name="lifebuild.db"):
+        self.db_name = db_name
+        self.init_database()
+    
+    def init_database(self):
+        """Inicializa o banco de dados com todas as tabelas necessárias"""
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        
+        # Tabela de usuários
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nomeUsuario TEXT NOT NULL UNIQUE,
+            senha TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            dataCadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
 
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS rotinas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            titulo TEXT NOT NULL,
+            descricao TEXT,
+            periodo TEXT NOT NULL,
+            dataInicio TIMESTAMP NOT NULL,
+            dataFim TIMESTAMP NOT NULL,
+            diasSemana TIMESTAMP,
+            hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            prioridade INTEGER NOT NULL,
+            etiqueta TEXT,
+            status TEXT NOT NULL DEFAULT 'Pendente',    
+            usuarioId INTEGER NOT NULL,
+            FOREIGN KEY (usuarioId) REFERENCES users(id)
+        )''')
+
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS etiquetas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL UNIQUE,
+            cor TEXT NOT NULL,
+            usuarioId INTEGER NOT NULL,
+            FOREIGN KEY (usuarioId) REFERENCES users(id)
+        )''')
+
+        conn.commit()
+        conn.close()
+        print("✅ Banco de dados inicializado com sucesso!")
+
+    def hash_senha(self, senha):
+        """Gera um hash seguro para a senha do usuário"""
+        return hashlib.sha256(senha.encode()).hexdigest()
+    
+    def verificar_senha(self, senha, senha_hash):
+        """Verifica se a senha corresponde ao hash"""
+        return self.hash_senha(senha) == senha_hash
+    
+    def criar_usuario(self, nome, email, senha):
+        """Cria um novo usuário no banco de dados"""
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        
+        try:
+            senha_hash = self.hash_senha(senha)
+            cursor.execute('''
+                INSERT INTO users (nomeUsuario, email, senha)
+                VALUES (?, ?, ?)
+            ''', (nome, email, senha_hash))
+            
+            conn.commit()
+            usuario_id = cursor.lastrowid
+            print(f"Usuário criado com ID: {usuario_id}")
+            return usuario_id
+        except sqlite3.IntegrityError as e:
+            print(f"Erro de integridade: {str(e)}")
+            return None
+        except Exception as e:
+            print(f"Erro ao criar usuário: {str(e)}")
+            raise
+        finally:
+            conn.close()
+    
+    def verificar_login(self, email, senha):
+        """Verifica as credenciais de login"""
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT id, nomeUsuario, senha FROM users WHERE email = ?', (email,))
+        resultado = cursor.fetchone()
+        conn.close()
+        
+        if resultado and self.verificar_senha(senha, resultado[2]):
+            return {"id": resultado[0], "nome": resultado[1]}
+        return None
+    
+    def obter_usuario(self, usuario_id):
+        """Obtém dados do usuário pelo ID"""
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, nomeUsuario, email, dataCadastro
+            FROM users WHERE id = ?
+        ''', (usuario_id,))
+        
+        usuario = cursor.fetchone()
+        conn.close()
+        
+        if usuario:
+            return {
+                "id": usuario[0],
+                "nomeUsuario": usuario[1],
+                "email": usuario[2]
+            }
+        return None
+    
+db = lifebuildDB()
+
+# ====== ROTAS DA APLICAÇÃO ======
+@app.route('/api')
+def home():
+    return jsonify({
+        "message": "Life Build - Online", 
+        "status": "success",
+        "endpoints": {
+            "login": "login (POST)",
+            "cadastro": "cadastro (POST)",
+        }
+    })
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    try:
+        data = request.json
+        email = data.get('email')
+        senha = data.get('senha')
+        
+        if not email or not senha:
+            return jsonify({"success": False, "error": "E-mail e senha são obrigatórios"}), 400
+        
+        usuario = db.verificar_login(email, senha)
+        
+        if usuario:
+            session['usuario_id'] = usuario['id']
+            session['nomeUsuario'] = usuario['nome']
+            
+            return jsonify({
+                "success": True,
+                "usuario": {
+                    "id": usuario['id'],
+                    "nome": usuario['nome'],
+                    "email": email
+                },
+                "message": "Login realizado com sucesso"
+            })
+        else:
+            return jsonify({"success": False, "error": "E-mail ou senha incorretos"}), 401
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/cadastro', methods=['POST'])
+def cadastro():
+    try:
+        # Aceita tanto JSON quanto form data
+        if request.is_json:
+            data = request.json
+        else:
+            data = request.form.to_dict()
+        
+        print(f"Dados recebidos: {data}")
+        
+        required_fields = ['nome', 'email', 'senha']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"success": False, "error": f"Campo {field} é obrigatório"}), 400
+        
+        usuario_id = db.criar_usuario(
+            nome=data['nome'],
+            email=data['email'],
+            senha=data['senha'],
+        )
+        
+        print(f"Usuário ID retornado: {usuario_id}")
+        
+        if usuario_id:
+            # Fazer login automático após cadastro
+            session['usuario_id'] = usuario_id
+            session['nomeUsuario'] = data['nome']
+            
+            return jsonify({
+                "success": True,
+                "usuario_id": usuario_id,
+                "message": "Cadastro realizado com sucesso"
+            })
+        else:
+            return jsonify({"success": False, "error": "E-mail já cadastrado"}), 400
+            
+    except Exception as e:
+        print(f"Erro no cadastro: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ====== ROTAS PARA PÁGINAS HTML ======
 @app.route('/')
 def index():
-    return redirect(url_for('login'))
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        senha = request.form['senha']
-
-        usuario = User.query.filter_by(email=email).first()
-
-        if usuario and check_password_hash(usuario.senha_hash, senha):
-            session['usuario_id'] = usuario.id
-            flash('Login realizado com sucesso!', 'success')
-            return redirect(url_for('home'))
-        else:
-            flash('E-mail ou senha incorretos.', 'danger')
-
     return render_template('index.html')
 
-@app.route('/cadastro', methods=['GET', 'POST'])
-def cadastro():
-    if request.method == 'POST':
-        nome = request.form['nome']
-        email = request.form['email']
-        senha = request.form['senha']
-
-        if User.query.filter_by(email=email).first():
-            flash('E-mail já cadastrado!', 'warning')
-            return redirect(url_for('cadastro'))
-
-        senha_hash = generate_password_hash(senha)
-        novo_usuario = User(nome=nome, email=email, senha_hash=senha_hash)
-        db.session.add(novo_usuario)
-        db.session.commit()
-
-        flash('Cadastro realizado! Faça login.', 'success')
-        return redirect(url_for('login'))
-
+@app.route('/cadastro-page')
+def cadastro_page():
     return render_template('cadastro.html')
 
-@app.route('/home')
-def home():
-    if 'usuario_id' not in session:
-        return redirect(url_for('login'))
-
-    usuario = User.query.get(session['usuario_id'])
-    return render_template('inicio.html', usuario=usuario)
-
-@app.route('/nova_rotina', methods=['GET', 'POST'])
-def nova_rotina():
-    if 'usuario_id' not in session:
-        flash("Você precisa estar logado para criar uma rotina.")
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        titulo = request.form['titulo']
-        descricao = request.form.get('descricao', '')
-        tipo_periodo = request.form.get('tipo_periodo', 'inicio_fim')
-        data_inicio = datetime.strptime(request.form['data_inicio'], '%Y-%m-%d').date()
-        data_fim = datetime.strptime(request.form['data_fim'], '%Y-%m-%d').date()
-        dias_semana = ','.join(request.form.getlist('dias_semana'))
-        hora_str = request.form.get('hora', None)
-        hora = datetime.strptime(hora_str, '%H:%M').time() if hora_str else None
-        prioridade = request.form.get('prioridade', 'média')
-        etiqueta = request.form.get('etiqueta', '')
-
-        nova = Rotina(
-            titulo=titulo,
-            descricao=descricao,
-            tipo_periodo=tipo_periodo,
-            data_inicio=data_inicio,
-            data_fim=data_fim,
-            dias_semana=dias_semana,
-            hora=hora,
-            prioridade=prioridade,
-            etiqueta=etiqueta,
-            usuario_id=session['usuario_id']
-        )
-
-        db.session.add(nova)
-        db.session.commit()
-        flash('Rotina criada com sucesso!')
-        return redirect(url_for('hoje'))
-
-    return render_template('index.html')
-
-DATABASE = 'banco.db' # Mude para o nome do seu arquivo SQLite
-def get_user_data(user_id):
-    """Busca os dados do usuário no banco de dados SQLite."""
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-    # SELECT os campos. Você precisará de uma forma de identificar o usuário atual (ex: user_id)
-    cursor.execute('SELECT username, email FROM users WHERE id = ?', (user_id,))
-    data = cursor.fetchone() # Pega apenas o primeiro resultado
-    conn.close()
-    return data # Retorna (username, email) ou None
-
-@app.route('/configuracoes')
-def configuracoes():
-    # Em uma aplicação real, você obteria o user_id da sessão do usuário logado
-    user_id_logado = 1 # Exemplo
-    user_data = get_user_data(user_id_logado)
-
-    if user_data:
-        username, email = user_data
-    else:
-        username, email = 'Não encontrado', 'naoencontrado@email.com'
-
-    # Renderiza o HTML, passando as variáveis de dados
-    return render_template('configuracoes.html', username=username, email=email)
+@app.route('/inicio.html')
+@app.route('/inicio')
+def inicio():
+    return render_template('inicio.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    print("🚀 Iniciando servidor LifeBuild...")
+    print("📊 Banco de dados: lifebuild.db")
+    print("🌐 Servidor disponível em: http://localhost:5000")
+    
+    app.run(debug=True, host='0.0.0.0', port=5000) 
