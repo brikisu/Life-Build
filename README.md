@@ -8,3 +8,6 @@ pip install Flask
 
 # Instala o Flask-SQL para o banco de dados
 pip install Flask-SQLAlchemy
+
+# Instala o Flask-CORS
+pip install Flask-CORS
