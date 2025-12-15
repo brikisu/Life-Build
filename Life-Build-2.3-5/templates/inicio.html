@@ -88,7 +88,6 @@
         </section>
 
         <section class="section" id="adminSidebarSection" {% if usuario and usuario.email in ['admin@example.com','admin@local'] %}style=""{% else %}style="display:none;"{% endif %}>
-          <h2 class="section-title">Administrador</h2>
           <ul class="menu" role="list">
             <li><a class="menu-link" href="#viewAdmin" data-view="admin">Administrador</a></li>
           </ul>
@@ -210,26 +209,39 @@
                       <thead>
                         <tr><th>Id</th><th>Nome</th><th>E-mail</th><th>Ações</th></tr>
                       </thead>
-                      <tbody id="adminUserTbody"></tbody>
+                      <tbody id="adminUserTbody">
+                        {% if admin_users %}
+                          {% for u in admin_users %}
+                            <tr>
+                              <td>{{ u.id }}</td>
+                              <td>{{ u.nome }}</td>
+                              <td>{{ u.email }}</td>
+                              <td>
+                                <button class="btn small" onclick="(async()=>{ if(confirm('Deseja realmente desbanir/banir este usuário?')) await adminPerformAction('{{ 'unban' if u.banned else 'ban' }}', {{ u.id }}); })()">{{ 'Desbanir' if u.banned else 'Banir' }}</button>
+                                <button class="btn danger small" onclick="(async()=>{ if(confirm('Excluir usuário {{ u.email }}? Essa ação é irreversível.')) await adminPerformAction('delete', {{ u.id }}); })()">Excluir</button>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                        {% endif %}
+                      </tbody>
                     </table>
                   </div>
                 </div>
               </section>
-
-            
+              
               <section class="account-info">
+
                 <div class="info-item">
                   <label data-i18n="profile.nomeUsuario">Nome de usuário</label>
                   <div class="info-field">
-                    <span id="userName"></span>
+                    <input type="text" id="userName" disabled value="{{ (usuario.nome.split('@')[0] if usuario and usuario.nome else (usuario.nome if usuario else '')) }}">
                   </div>
                 </div>
 
                 <div class="info-item">
                   <label data-i18n="profile.email">E-mail</label>
                   <div class="info-field">
-                    <span id="userEmail"></span>
-                    <a href="#" class="link" id="showEmail" data-i18n="profile.mostrar">Mostrar</a>
+                    <input type="email" id="userEmail" disabled value="{{ usuario.email if usuario else '' }}">
                   </div>
                 </div>
               </section>
@@ -269,6 +281,7 @@
                   Configurações</button>
                 <button type="button" id="btnResetSettings" class="btn secondary"
                   data-i18n="button.resetSettings">Restaurar Padrões</button>
+                <a href="{{ url_for('logout') }}" class="btn" style="background:transparent;color:var(--color-primary);border:1px solid var(--color-primary);margin-left:8px;" onclick="return confirm('Deseja realmente sair da conta?');">Sair</a>
               </div>
             </form>
           </div>
@@ -556,5 +569,4 @@
 
   <script defer src="../static/inicio.js"></script>
 </body>
-
 </html>
