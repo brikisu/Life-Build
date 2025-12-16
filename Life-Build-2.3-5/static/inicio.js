@@ -1878,11 +1878,7 @@ function render() {
 
   // Oculta todas as views primeiro
   const views = document.querySelectorAll('.view');
-  views.forEach(view => {
-    view.classList.remove('is-active');
-    // ensure hidden state for views (handles inline style="display:none;" in template)
-    try { view.style.display = 'none'; } catch (e) { /* ignore */ }
-  });
+  views.forEach(view => view.classList.remove('is-active'));
 
   // Mostra a view ativa baseada no currentView
   switch (state.currentView) {
@@ -1895,26 +1891,25 @@ function render() {
       renderTaskList();
       break;
     case 'calendario':
-      if (DOM.viewCalendario) { DOM.viewCalendario.classList.add('is-active'); DOM.viewCalendario.style.display = ''; }
+      if (DOM.viewCalendario) DOM.viewCalendario.classList.add('is-active');
       renderCalendar();
       break;
     case 'config':
-      if (DOM.viewConfig) { DOM.viewConfig.classList.add('is-active'); DOM.viewConfig.style.display = ''; }
+      if (DOM.viewConfig) DOM.viewConfig.classList.add('is-active');
       renderProfile();
       break;
     case 'graficos':
-      if (DOM.viewGraficos) { DOM.viewGraficos.classList.add('is-active'); DOM.viewGraficos.style.display = ''; }
+      if (DOM.viewGraficos) DOM.viewGraficos.classList.add('is-active');
       initCharts();
       break;
     case 'admin':
       if (DOM.viewAdmin) {
         DOM.viewAdmin.classList.add('is-active');
-        DOM.viewAdmin.style.display = '';
-        renderAdminView();
+        renderAdminUsers();
       }
       break;
     default:
-      if (DOM.viewHoje) { DOM.viewHoje.classList.add('is-active'); DOM.viewHoje.style.display = ''; }
+      if (DOM.viewHoje) DOM.viewHoje.classList.add('is-active');
       renderTaskList();
   }
 }
@@ -2461,48 +2456,6 @@ async function loadAdminUsers() {
   }
 }
 
-// Render the admin view conditionally based on whether the current user is admin
-function renderAdminView() {
-  if (!DOM.viewAdmin) return;
-  // make sure admin area shows a visible initial message while loading
-  try {
-    if (DOM.adminNotice) DOM.adminNotice.textContent = 'Carregando usuários...';
-    if (DOM.adminUserTable) DOM.adminUserTable.style.display = 'none';
-    if (DOM.adminStats) DOM.adminStats.style.display = 'none';
-  } catch (e) { /* ignore DOM issues */ }
-  // If profile indicates admin, ensure the full admin UI is loaded
-  console.log('renderAdminView - profile:', state.profile);
-  if (state.profile && state.profile.is_admin) {
-    // Show section and try to load users (loadAdminUsers will handle errors)
-    if (DOM.adminSidebarSection) DOM.adminSidebarSection.style.display = '';
-    loadAdminUsers().catch((err) => { console.error('loadAdminUsers error:', err); });
-    // Ensure any previous 'no access' message is cleared
-    if (DOM.adminNotice) DOM.adminNotice.textContent = '';
-    if (DOM.adminUserTable) DOM.adminUserTable.style.display = '';
-  } else {
-    // Not an admin: show friendly message and a support button to request access
-    if (DOM.adminUserTbody) DOM.adminUserTbody.innerHTML = '';
-    if (DOM.adminUserTable) DOM.adminUserTable.style.display = 'none';
-    if (DOM.adminNotice) DOM.adminNotice.innerHTML = `
-      <div class="admin-no-access">
-        <p>Você não tem permissão para acessar o Painel do Administrador.</p>
-        <p>Se precisar de acesso, <a id="requestAdminAccess" href="#">solicite suporte</a>.</p>
-      </div>`;
-
-    // Wire the requestAdminAccess link to open the support form
-    setTimeout(() => {
-      const req = document.getElementById('requestAdminAccess');
-      if (req) {
-        req.addEventListener('click', (e) => {
-          e.preventDefault();
-          const support = document.getElementById('btnSupport');
-          if (support && support.href) window.open(support.href, '_blank', 'noopener');
-        });
-      }
-    }, 50);
-  }
-}
-
 function renderAdminUsers(users = [], bannedIds = new Set()) {
   if (!DOM.adminUserTable || !DOM.adminUserTbody || !DOM.adminNotice) return;
   DOM.adminUserTbody.innerHTML = '';
@@ -2590,8 +2543,12 @@ function maskEmail(email) {
 function openCustomPeriodModal() {
   if (!DOM.modalCustomPeriod) return;
 
-  // Allow any date (no minimum) so users can create periods on any day of the year
+  // Definir data mínima como hoje
   const today = new Date().toISOString().split('T')[0];
+  if (DOM.customStartDate) DOM.customStartDate.min = today;
+  if (DOM.customEndDate) DOM.customEndDate.min = today;
+  if (DOM.recurringStartDate) DOM.recurringStartDate.min = today;
+  if (DOM.recurringEndDate) DOM.recurringEndDate.min = today;
 
   // Limpar formulário
   if (DOM.customPeriodForm) DOM.customPeriodForm.reset();
@@ -2656,7 +2613,9 @@ function showPeriodSection(type) {
     case 'recurring':
       if (DOM.periodRecurringSection) {
         DOM.periodRecurringSection.style.display = 'block';
-        // no minimum restriction for recurring dates
+        const today = new Date().toISOString().split('T')[0];
+        if (DOM.recurringStartDate) DOM.recurringStartDate.min = today;
+        if (DOM.recurringEndDate) DOM.recurringEndDate.min = today;
       }
       break;
   }
@@ -2674,7 +2633,8 @@ function addSpecificDateField() {
   dateInput.className = 'specific-date';
   dateInput.required = true;
 
-  // Allow any date for specific entries (no min)
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.min = today;
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
