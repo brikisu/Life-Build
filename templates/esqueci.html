@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar senha - LifeBuild</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <h1 class="bem_vindo">Recuperar senha</h1>
+    <div class="box-login">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, msg in messages %}
+                <div class="info {{ category }}">{{ msg }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form class="form" method="POST" action="{{ url_for('esqueci') }}">
+            <label for="email">Email cadastrado:</label>
+            <div class="input-icon">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" name="email" placeholder="Digite seu email" required>
+            </div>
+            
+            <button type="submit">Enviar link de recuperação</button>
+            <button class="cadastro-link"><li href="{{ url_for('login') }}">Voltar ao login</li></button>
+        </form>
+    </div>
+</body>
+</html>

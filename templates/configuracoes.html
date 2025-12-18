@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Configurações</title>
+  <link rel="stylesheet" href="../static/style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Configurações</h1>
+    <section class="profile-info">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div>
+          <strong id="displayName">{{ username }}</strong>
+        </div>
+        <div style="margin-left:auto;">
+          <a href="#" id="toggleEmail">Mostrar</a>
+        </div>
+      </div>
+      <div style="margin-top:8px; color:#444;">
+        <span id="emailMasked">{{ email.split('@')[0] if email else 'usuario' }}@****</span>
+        <span id="emailFull" style="display:none;">{{ email }}</span>
+      </div>
+    </section>
+
+    <p><a href="/home">Voltar</a></p>
+  </main>
+
+  <script>
+    document.getElementById('toggleEmail').addEventListener('click', function(e){
+      e.preventDefault();
+      const masked = document.getElementById('emailMasked');
+      const full = document.getElementById('emailFull');
+      if (full.style.display === 'none') {
+        full.style.display = 'inline';
+        masked.style.display = 'none';
+        this.textContent = 'Ocultar';
+      } else {
+        full.style.display = 'none';
+        masked.style.display = 'inline';
+        this.textContent = 'Mostrar';
+      }
+    });
+  </script>
+</body>
+</html>
